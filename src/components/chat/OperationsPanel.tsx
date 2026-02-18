@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useMemo, useState, useCallback } = React;
+const { useMemo, useState, useCallback, useEffect } = React;
 import { Notice } from "obsidian";
 import type { SlashCommand } from "../../domain/models/chat-session";
 
@@ -43,20 +43,133 @@ const SYNC_MODES: SyncModeOption[] = [
 	},
 ];
 
+interface FocusActionOption {
+	id: "recovery" | "todo" | "relations";
+	name: string;
+	description: string;
+}
+
+const FOCUS_ACTIONS: FocusActionOption[] = [
+	{
+		id: "recovery",
+		name: "Recovery Queue",
+		description: "Prioritize highest-impact missing or at-risk coursework.",
+	},
+	{
+		id: "todo",
+		name: "TODO List",
+		description: "Build or refresh the current actionable task packet.",
+	},
+	{
+		id: "relations",
+		name: "Link Relations",
+		description: "Refresh related-assignment links and supporting context.",
+	},
+];
+
+interface AssistantActionOption {
+	id: "status" | "sessions" | "fork" | "resume" | "capabilities";
+	name: string;
+	description: string;
+}
+
+const ASSISTANT_ACTIONS: AssistantActionOption[] = [
+	{
+		id: "status",
+		name: "Status",
+		description: "Show current session mode/model and last operational health.",
+	},
+	{
+		id: "sessions",
+		name: "Sessions",
+		description: "List resumable and recent sessions.",
+	},
+	{
+		id: "fork",
+		name: "Fork Session",
+		description: "Create a branch session from current context.",
+	},
+	{
+		id: "resume",
+		name: "Resume Session",
+		description: "Resume a saved session context.",
+	},
+	{
+		id: "capabilities",
+		name: "Capabilities",
+		description: "List safe local operational capabilities.",
+	},
+];
+
+interface TriageActionOption {
+	id: "sources" | "audit" | "weekly";
+	name: string;
+	description: string;
+}
+
+const TRIAGE_ACTIONS: TriageActionOption[] = [
+	{
+		id: "sources",
+		name: "Source Triage",
+		description:
+			"Find new/unprocessed items and missing links across Obsidian, Notion, and Zotero.",
+	},
+	{
+		id: "audit",
+		name: "Vault Audit",
+		description:
+			"Run integrity checks for links, source_uids, and mapping consistency.",
+	},
+	{
+		id: "weekly",
+		name: "Weekly Plan",
+		description:
+			"Produce a weekly information-gathering and organization plan.",
+	},
+];
+
+const TRIAGE_DEPTH_OPTIONS = [
+	{ id: "concise", label: "Concise" },
+	{ id: "detailed", label: "Detailed" },
+] as const;
+
+type FocusActionId = FocusActionOption["id"];
+type AssistantActionId = AssistantActionOption["id"];
+type TriageActionId = TriageActionOption["id"];
+
+export interface FocusCourseOption {
+	id: string;
+	label: string;
+}
+
 export interface OperationsPanelProps {
 	availableCommands: SlashCommand[];
+	focusCourseOptions: FocusCourseOption[];
 	isBusy: boolean;
 	onRunPrompt: (prompt: string) => Promise<boolean>;
 }
 
 export function OperationsPanel({
 	availableCommands,
+	focusCourseOptions,
 	isBusy,
 	onRunPrompt,
 }: OperationsPanelProps) {
 	const [collapsed, setCollapsed] = useState(false);
 	const [syncModeId, setSyncModeId] = useState("notion_refresh");
-	const [focusCourse, setFocusCourse] = useState("");
+	const [focusActionIds, setFocusActionIds] = useState<FocusActionId[]>([
+		"todo",
+	]);
+	const [focusCourseId, setFocusCourseId] = useState("");
+	const [assistantActionId, setAssistantActionId] =
+		useState<AssistantActionId>("status");
+	const [assistantResumeArg, setAssistantResumeArg] = useState("latest");
+	const [triageActionIds, setTriageActionIds] = useState<TriageActionId[]>([
+		"sources",
+	]);
+	const [triageDepth, setTriageDepth] = useState<"concise" | "detailed">(
+		"concise",
+	);
 
 	const commandNames = useMemo(
 		() => new Set(availableCommands.map((command) => command.name)),
@@ -67,6 +180,42 @@ export function OperationsPanel({
 		() => SYNC_MODES.find((mode) => mode.id === syncModeId) || SYNC_MODES[0],
 		[syncModeId],
 	);
+
+	const selectedFocusAction = useMemo(
+		() => FOCUS_ACTIONS.filter((action) => focusActionIds.includes(action.id)),
+		[focusActionIds],
+	);
+
+	const selectedFocusCourse = useMemo(
+		() =>
+			focusCourseOptions.find((course) => course.id === focusCourseId) ||
+			focusCourseOptions[0],
+		[focusCourseOptions, focusCourseId],
+	);
+
+	const selectedAssistantAction = useMemo(
+		() =>
+			ASSISTANT_ACTIONS.find((action) => action.id === assistantActionId) ||
+			ASSISTANT_ACTIONS[0],
+		[assistantActionId],
+	);
+
+	const selectedTriageActions = useMemo(
+		() => TRIAGE_ACTIONS.filter((action) => triageActionIds.includes(action.id)),
+		[triageActionIds],
+	);
+
+	useEffect(() => {
+		if (focusCourseOptions.length === 0) {
+			return;
+		}
+		const exists = focusCourseOptions.some(
+			(course) => course.id === focusCourseId,
+		);
+		if (!exists) {
+			setFocusCourseId(focusCourseOptions[0].id);
+		}
+	}, [focusCourseOptions, focusCourseId]);
 
 	const runPrompt = useCallback(
 		async (prompt: string) => {
@@ -94,28 +243,43 @@ export function OperationsPanel({
 		);
 	}, [commandNames, runPrompt, selectedSyncMode]);
 
-	const runFocus = useCallback(
-		(action: "recovery" | "todo" | "relations") => {
-			const course = focusCourse.trim();
-			if (commandNames.has("focus")) {
-				const suffix = course.length > 0 ? ` ${course}` : "";
-				void runPrompt(`/focus ${action}${suffix}`);
-				return;
+	const toggleFocusAction = useCallback((actionId: FocusActionId) => {
+		setFocusActionIds((prev) => {
+			if (prev.includes(actionId)) {
+				return prev.filter((id) => id !== actionId);
 			}
-			const courseText =
-				course.length > 0
-					? ` for course ${course}`
-					: " for my current focus course";
-			void runPrompt(
-				`Run ${action} focus workflow${courseText} and summarize prioritized next steps.`,
-			);
-		},
-		[commandNames, focusCourse, runPrompt],
-	);
+			return [...prev, actionId];
+		});
+	}, []);
+
+	const runFocus = useCallback(() => {
+		if (selectedFocusAction.length === 0) {
+			new Notice("[Agent Client] Select at least one focus action.");
+			return;
+		}
+		const course = (selectedFocusCourse?.id || "").trim();
+		if (selectedFocusAction.length === 1 && commandNames.has("focus")) {
+			const suffix = course.length > 0 ? ` ${course}` : "";
+			void runPrompt(`/focus ${selectedFocusAction[0].id}${suffix}`);
+			return;
+		}
+		const courseText =
+			course.length > 0
+				? ` for course ${course}`
+				: " for my current focus course";
+		const actionsText = selectedFocusAction.map((action) => action.id).join(", ");
+		void runPrompt(
+			`Run these focus workflows${courseText}: ${actionsText}. Execute safely and summarize prioritized next steps.`,
+		);
+	}, [commandNames, runPrompt, selectedFocusAction, selectedFocusCourse]);
 
 	const runAssistant = useCallback(
-		(action: "status" | "sessions" | "fork" | "resume" | "capabilities") => {
+		(action: AssistantActionId) => {
 			if (commandNames.has(action)) {
+				if (action === "resume" && assistantResumeArg.trim().length > 0) {
+					void runPrompt(`/resume ${assistantResumeArg.trim()}`);
+					return;
+				}
 				void runPrompt(`/${action}`);
 				return;
 			}
@@ -132,31 +296,91 @@ export function OperationsPanel({
 			};
 			void runPrompt(fallbackPrompts[action]);
 		},
-		[commandNames, runPrompt],
+		[assistantResumeArg, commandNames, runPrompt],
 	);
 
+	const toggleTriageAction = useCallback((actionId: TriageActionId) => {
+		setTriageActionIds((prev) => {
+			if (prev.includes(actionId)) {
+				return prev.filter((id) => id !== actionId);
+			}
+			return [...prev, actionId];
+		});
+	}, []);
+
 	const runTriage = useCallback(
-		(kind: "sources" | "audit" | "weekly") => {
+		(kind: TriageActionId) => {
+			const detailClause =
+				triageDepth === "detailed"
+					? "Provide a detailed report with grouped findings and next-step checklist."
+					: "Keep it concise and practical.";
 			if (kind === "sources") {
 				void runPrompt(
 					"Run a source triage across Obsidian vault, Notion databases, and Zotero. " +
-						"Identify new/unprocessed items, missing links, and top 5 organization actions.",
+						`Identify new/unprocessed items, missing links, and top 5 organization actions. ${detailClause}`,
 				);
 				return;
 			}
 			if (kind === "audit") {
 				void runPrompt(
 					"Run vault integrity checks for wiki links, source_uid duplicates, and mapping consistency. " +
-						"Summarize issues and provide the safest fix sequence.",
+						`Summarize issues and provide the safest fix sequence. ${detailClause}`,
 				);
 				return;
 			}
 			void runPrompt(
 				"Build a weekly information-gathering plan: due items, reading queue from Zotero, " +
-					"and required Notion/Obsidian updates.",
+					`and required Notion/Obsidian updates. ${detailClause}`,
 			);
 		},
-		[runPrompt],
+		[runPrompt, triageDepth],
+	);
+
+	const runSelectedTriage = useCallback(() => {
+		if (selectedTriageActions.length === 0) {
+			new Notice("[Agent Client] Select at least one triage action.");
+			return;
+		}
+		if (selectedTriageActions.length === 1) {
+			runTriage(selectedTriageActions[0].id);
+			return;
+		}
+		const labels = selectedTriageActions.map((action) => action.name).join(", ");
+		const depthText =
+			triageDepth === "detailed"
+				? "Detailed report with grouped findings and ordered action plan."
+				: "Concise summary with key actions only.";
+		void runPrompt(
+			`Run these triage workflows in order: ${labels}. ${depthText}`,
+		);
+	}, [runPrompt, runTriage, selectedTriageActions, triageDepth]);
+
+	const runSelectedAssistant = useCallback(() => {
+		runAssistant(assistantActionId);
+	}, [assistantActionId, runAssistant]);
+
+	const focusSelectedText = useMemo(() => {
+		if (selectedFocusAction.length === 0) {
+			return "No actions selected.";
+		}
+		return `Selected: ${selectedFocusAction.map((action) => action.name).join(", ")}`;
+	}, [selectedFocusAction]);
+
+	const triageSelectedText = useMemo(() => {
+		if (selectedTriageActions.length === 0) {
+			return "No triage actions selected.";
+		}
+		return `Selected: ${selectedTriageActions
+			.map((action) => action.name)
+			.join(", ")}`;
+	}, [selectedTriageActions]);
+
+	const assistantResumeOptions = useMemo(
+		() => [
+			{ id: "latest", label: "latest" },
+			{ id: "", label: "list sessions first" },
+		],
+		[],
 	);
 
 	return (
@@ -207,90 +431,96 @@ export function OperationsPanel({
 
 					<section className="agent-client-operations-card">
 						<h5 className="agent-client-operations-card-title">Focus</h5>
-						<input
-							type="text"
-							className="agent-client-operations-input"
-							placeholder="Focused Course ID (optional)"
-							value={focusCourse}
+						<div className="agent-client-operations-multiselect">
+							{FOCUS_ACTIONS.map((action) => (
+								<label
+									key={action.id}
+									className="agent-client-operations-multiselect-item"
+								>
+									<input
+										type="checkbox"
+										checked={focusActionIds.includes(action.id)}
+										onChange={() => toggleFocusAction(action.id)}
+										disabled={isBusy}
+									/>
+									<span>{action.name}</span>
+								</label>
+							))}
+						</div>
+						<select
+							className="agent-client-operations-select"
+							value={focusCourseId}
 							onChange={(event) =>
-								setFocusCourse(event.target.value)
+								setFocusCourseId(event.target.value)
 							}
 							disabled={isBusy}
-						/>
-						<div className="agent-client-operations-action-row">
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runFocus("recovery")}
-								disabled={isBusy}
-							>
-								Recovery
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runFocus("todo")}
-								disabled={isBusy}
-							>
-								TODO
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runFocus("relations")}
-								disabled={isBusy}
-							>
-								Relations
-							</button>
-						</div>
+						>
+							{focusCourseOptions.map((course) => (
+								<option key={course.id || "__none"} value={course.id}>
+									{course.label}
+								</option>
+							))}
+						</select>
+						<p className="agent-client-operations-card-desc">
+							{focusSelectedText}
+						</p>
+						<button
+							type="button"
+							className="agent-client-operations-action-button"
+							onClick={runFocus}
+							disabled={isBusy}
+						>
+							Run Focus
+						</button>
 					</section>
 
 					<section className="agent-client-operations-card">
 						<h5 className="agent-client-operations-card-title">
 							Assistant
 						</h5>
-						<div className="agent-client-operations-action-row">
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runAssistant("status")}
+						<select
+							className="agent-client-operations-select"
+							value={assistantActionId}
+							onChange={(event) =>
+								setAssistantActionId(
+									event.target.value as AssistantActionId,
+								)
+							}
+							disabled={isBusy}
+						>
+							{ASSISTANT_ACTIONS.map((action) => (
+								<option key={action.id} value={action.id}>
+									{action.name}
+								</option>
+							))}
+						</select>
+						{assistantActionId === "resume" && (
+							<select
+								className="agent-client-operations-select"
+								value={assistantResumeArg}
+								onChange={(event) =>
+									setAssistantResumeArg(event.target.value)
+								}
 								disabled={isBusy}
 							>
-								Status
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runAssistant("sessions")}
-								disabled={isBusy}
-							>
-								Sessions
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runAssistant("fork")}
-								disabled={isBusy}
-							>
-								Fork
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runAssistant("resume")}
-								disabled={isBusy}
-							>
-								Resume
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runAssistant("capabilities")}
-								disabled={isBusy}
-							>
-								Capabilities
-							</button>
-						</div>
+								{assistantResumeOptions.map((option) => (
+									<option key={option.id || "__blank"} value={option.id}>
+										{option.label}
+									</option>
+								))}
+							</select>
+						)}
+						<p className="agent-client-operations-card-desc">
+							{selectedAssistantAction.description}
+						</p>
+						<button
+							type="button"
+							className="agent-client-operations-action-button"
+							onClick={runSelectedAssistant}
+							disabled={isBusy}
+						>
+							Run Assistant Action
+						</button>
 					</section>
 
 					<section className="agent-client-operations-card">
@@ -301,32 +531,49 @@ export function OperationsPanel({
 							Prioritize organization and information-gathering tasks
 							across Obsidian, Notion, and Zotero.
 						</p>
-						<div className="agent-client-operations-action-row">
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runTriage("sources")}
-								disabled={isBusy}
-							>
-								Source Triage
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runTriage("audit")}
-								disabled={isBusy}
-							>
-								Vault Audit
-							</button>
-							<button
-								type="button"
-								className="agent-client-operations-action-button"
-								onClick={() => runTriage("weekly")}
-								disabled={isBusy}
-							>
-								Weekly Plan
-							</button>
+						<div className="agent-client-operations-multiselect">
+							{TRIAGE_ACTIONS.map((action) => (
+								<label
+									key={action.id}
+									className="agent-client-operations-multiselect-item"
+								>
+									<input
+										type="checkbox"
+										checked={triageActionIds.includes(action.id)}
+										onChange={() => toggleTriageAction(action.id)}
+										disabled={isBusy}
+									/>
+									<span>{action.name}</span>
+								</label>
+							))}
 						</div>
+						<select
+							className="agent-client-operations-select"
+							value={triageDepth}
+							onChange={(event) =>
+								setTriageDepth(
+									event.target.value as "concise" | "detailed",
+								)
+							}
+							disabled={isBusy}
+						>
+							{TRIAGE_DEPTH_OPTIONS.map((option) => (
+								<option key={option.id} value={option.id}>
+									Depth: {option.label}
+								</option>
+							))}
+						</select>
+						<p className="agent-client-operations-card-desc">
+							{triageSelectedText}
+						</p>
+						<button
+							type="button"
+							className="agent-client-operations-action-button"
+							onClick={runSelectedTriage}
+							disabled={isBusy}
+						>
+							Run Triage
+						</button>
 					</section>
 				</div>
 			)}
