@@ -13,7 +13,7 @@ import type AgentClientPlugin from "../../plugin";
 import type { ChatInputState } from "../../domain/models/chat-input-state";
 
 // Component imports
-import { ChatHeader } from "./ChatHeader";
+import { ChatHeader, type HeaderQuickAction } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
 import type { AttachedImage } from "./ImagePreviewStrip";
@@ -59,6 +59,50 @@ interface AppWithSettings {
 }
 
 export const VIEW_TYPE_CHAT = "agent-client-chat-view";
+
+interface HeaderQuickActionPreset extends HeaderQuickAction {
+	commandName: string;
+}
+
+const HEADER_QUICK_ACTION_PRESETS: HeaderQuickActionPreset[] = [
+	{
+		id: "quick-status",
+		label: "Status",
+		commandName: "status",
+		prompt: "/status",
+		tooltip: "Run /status",
+	},
+	{
+		id: "quick-sessions",
+		label: "Sessions",
+		commandName: "sessions",
+		prompt: "/sessions",
+		tooltip: "Run /sessions",
+	},
+	{
+		id: "quick-sync",
+		label: "Sync",
+		commandName: "sync",
+		prompt: "/sync notion_refresh",
+		tooltip: "Run /sync notion_refresh",
+	},
+	{
+		id: "quick-focus",
+		label: "Focus",
+		commandName: "focus",
+		prompt: "/focus todo",
+		tooltip: "Run /focus todo",
+	},
+	{
+		id: "quick-capabilities",
+		label: "Capabilities",
+		commandName: "capabilities",
+		prompt: "/capabilities",
+		tooltip: "Run /capabilities",
+	},
+];
+
+const MAX_HEADER_QUICK_ACTIONS = 4;
 
 function ChatComponent({
 	plugin,
@@ -312,6 +356,36 @@ function ChatComponent({
 		);
 		return custom?.displayName || custom?.id || activeId;
 	}, [session.agentId, plugin.settings]);
+
+	const headerQuickActions = useMemo<HeaderQuickAction[]>(() => {
+		const availableCommands = session.availableCommands || [];
+		if (availableCommands.length === 0) {
+			return [];
+		}
+
+		const availableByName = new Set(availableCommands.map((c) => c.name));
+		const presetActions = HEADER_QUICK_ACTION_PRESETS.filter((preset) =>
+			availableByName.has(preset.commandName),
+		).slice(0, MAX_HEADER_QUICK_ACTIONS);
+
+		if (presetActions.length > 0) {
+			return presetActions.map(({ id, label, prompt, tooltip }) => ({
+				id,
+				label,
+				prompt,
+				tooltip,
+			}));
+		}
+
+		return availableCommands.slice(0, MAX_HEADER_QUICK_ACTIONS).map(
+			(command) => ({
+				id: `quick-${command.name}`,
+				label: `/${command.name}`,
+				prompt: `/${command.name}`,
+				tooltip: command.description,
+			}),
+		);
+	}, [session.availableCommands]);
 
 	// ============================================================
 	// Callbacks
@@ -670,6 +744,20 @@ function ChatComponent({
 	const handleClearError = useCallback(() => {
 		chat.clearError();
 	}, [chat]);
+
+	const handleRunQuickAction = useCallback(
+		async (action: HeaderQuickAction) => {
+			if (!isSessionReady || sessionHistory.loading || isSending) {
+				return;
+			}
+			const prompt = action.prompt.trim();
+			if (!prompt) {
+				return;
+			}
+			await handleSendMessage(prompt);
+		},
+		[isSessionReady, sessionHistory.loading, isSending, handleSendMessage],
+	);
 
 	const handleRestoredMessageConsumed = useCallback(() => {
 		setRestoredMessage(null);
@@ -1121,6 +1209,11 @@ function ChatComponent({
 				onExportChat={() => void handleExportChat()}
 				onToggleMenu={handleToggleMenu}
 				onOpenHistory={handleOpenHistory}
+				quickActions={headerQuickActions}
+				onRunQuickAction={(action) => void handleRunQuickAction(action)}
+				disableQuickActions={
+					!isSessionReady || sessionHistory.loading || isSending
+				}
 				menuButtonRef={menuButtonRef}
 			/>
 

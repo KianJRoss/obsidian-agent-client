@@ -1,6 +1,13 @@
 import * as React from "react";
 import { HeaderButton } from "./HeaderButton";
 
+export interface HeaderQuickAction {
+	id: string;
+	label: string;
+	prompt: string;
+	tooltip?: string;
+}
+
 /**
  * Props for ChatHeader component
  */
@@ -19,6 +26,12 @@ export interface ChatHeaderProps {
 	onToggleMenu: () => void;
 	/** Callback to open session history */
 	onOpenHistory?: () => void;
+	/** Quick action buttons shown under the title */
+	quickActions?: HeaderQuickAction[];
+	/** Callback for quick action button click */
+	onRunQuickAction?: (action: HeaderQuickAction) => void;
+	/** Disable quick action buttons while session is busy/restoring */
+	disableQuickActions?: boolean;
 	/** Reference to the menu button for menu positioning */
 	menuButtonRef: React.RefObject<HTMLButtonElement | null>;
 }
@@ -39,6 +52,9 @@ export function ChatHeader({
 	onExportChat,
 	onToggleMenu,
 	onOpenHistory,
+	quickActions = [],
+	onRunQuickAction,
+	disableQuickActions = false,
 	menuButtonRef,
 }: ChatHeaderProps) {
 	return (
@@ -47,6 +63,22 @@ export function ChatHeader({
 				<h3 className="agent-client-chat-view-header-title">
 					{agentLabel}
 				</h3>
+				{quickActions.length > 0 && onRunQuickAction && (
+					<div className="agent-client-chat-view-header-quick-actions">
+						{quickActions.map((action) => (
+							<button
+								key={action.id}
+								type="button"
+								className="agent-client-header-quick-action-button"
+								title={action.tooltip || action.prompt}
+								onClick={() => onRunQuickAction(action)}
+								disabled={disableQuickActions}
+							>
+								{action.label}
+							</button>
+						))}
+					</div>
+				)}
 			</div>
 			{isUpdateAvailable && (
 				<p className="agent-client-chat-view-header-update">
