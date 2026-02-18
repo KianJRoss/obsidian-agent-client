@@ -16,6 +16,7 @@ import type { ChatInputState } from "../../domain/models/chat-input-state";
 import { ChatHeader, type HeaderQuickAction } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
+import { OperationsPanel } from "./OperationsPanel";
 import type { AttachedImage } from "./ImagePreviewStrip";
 import { SessionHistoryModal } from "./SessionHistoryModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
@@ -745,18 +746,26 @@ function ChatComponent({
 		chat.clearError();
 	}, [chat]);
 
-	const handleRunQuickAction = useCallback(
-		async (action: HeaderQuickAction) => {
+	const runOperationPrompt = useCallback(
+		async (prompt: string): Promise<boolean> => {
 			if (!isSessionReady || sessionHistory.loading || isSending) {
-				return;
+				return false;
 			}
-			const prompt = action.prompt.trim();
-			if (!prompt) {
-				return;
+			const text = prompt.trim();
+			if (!text) {
+				return false;
 			}
-			await handleSendMessage(prompt);
+			await handleSendMessage(text);
+			return true;
 		},
 		[isSessionReady, sessionHistory.loading, isSending, handleSendMessage],
+	);
+
+	const handleRunQuickAction = useCallback(
+		async (action: HeaderQuickAction) => {
+			await runOperationPrompt(action.prompt);
+		},
+		[runOperationPrompt],
 	);
 
 	const handleRestoredMessageConsumed = useCallback(() => {
@@ -1215,6 +1224,12 @@ function ChatComponent({
 					!isSessionReady || sessionHistory.loading || isSending
 				}
 				menuButtonRef={menuButtonRef}
+			/>
+
+			<OperationsPanel
+				availableCommands={session.availableCommands || []}
+				isBusy={!isSessionReady || sessionHistory.loading || isSending}
+				onRunPrompt={runOperationPrompt}
 			/>
 
 			{isMenuOpen && (
