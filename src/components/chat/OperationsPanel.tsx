@@ -175,6 +175,19 @@ export function OperationsPanel({
 		() => new Set(availableCommands.map((command) => command.name)),
 		[availableCommands],
 	);
+	const hasCommandDiscovery = commandNames.size > 0;
+
+	const shouldTrySlashCommand = useCallback(
+		(command: string) => {
+			// Some ACP bridges (including custom ones) support slash commands
+			// without advertising available_commands_update.
+			if (!hasCommandDiscovery) {
+				return true;
+			}
+			return commandNames.has(command);
+		},
+		[commandNames, hasCommandDiscovery],
+	);
 
 	const selectedSyncMode = useMemo(
 		() => SYNC_MODES.find((mode) => mode.id === syncModeId) || SYNC_MODES[0],
@@ -234,14 +247,14 @@ export function OperationsPanel({
 	);
 
 	const runSync = useCallback(() => {
-		if (commandNames.has("sync")) {
+		if (shouldTrySlashCommand("sync")) {
 			void runPrompt(`/sync ${selectedSyncMode.syncArg}`);
 			return;
 		}
 		void runPrompt(
 			`Run a safe ${selectedSyncMode.name} workflow and summarize what changed.`,
 		);
-	}, [commandNames, runPrompt, selectedSyncMode]);
+	}, [runPrompt, selectedSyncMode, shouldTrySlashCommand]);
 
 	const toggleFocusAction = useCallback((actionId: FocusActionId) => {
 		setFocusActionIds((prev) => {
@@ -258,7 +271,10 @@ export function OperationsPanel({
 			return;
 		}
 		const course = (selectedFocusCourse?.id || "").trim();
-		if (selectedFocusAction.length === 1 && commandNames.has("focus")) {
+		if (
+			selectedFocusAction.length === 1 &&
+			shouldTrySlashCommand("focus")
+		) {
 			const suffix = course.length > 0 ? ` ${course}` : "";
 			void runPrompt(`/focus ${selectedFocusAction[0].id}${suffix}`);
 			return;
@@ -271,11 +287,11 @@ export function OperationsPanel({
 		void runPrompt(
 			`Run these focus workflows${courseText}: ${actionsText}. Execute safely and summarize prioritized next steps.`,
 		);
-	}, [commandNames, runPrompt, selectedFocusAction, selectedFocusCourse]);
+	}, [runPrompt, selectedFocusAction, selectedFocusCourse, shouldTrySlashCommand]);
 
 	const runAssistant = useCallback(
 		(action: AssistantActionId) => {
-			if (commandNames.has(action)) {
+			if (shouldTrySlashCommand(action)) {
 				if (action === "resume" && assistantResumeArg.trim().length > 0) {
 					void runPrompt(`/resume ${assistantResumeArg.trim()}`);
 					return;
@@ -296,7 +312,7 @@ export function OperationsPanel({
 			};
 			void runPrompt(fallbackPrompts[action]);
 		},
-		[assistantResumeArg, commandNames, runPrompt],
+		[assistantResumeArg, runPrompt, shouldTrySlashCommand],
 	);
 
 	const toggleTriageAction = useCallback((actionId: TriageActionId) => {
