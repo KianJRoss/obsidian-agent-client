@@ -43,6 +43,23 @@ const SUPPORTED_IMAGE_TYPES = [
 ] as const;
 
 type SupportedImageType = (typeof SUPPORTED_IMAGE_TYPES)[number];
+type AssistantQuickActionId =
+	| "status"
+	| "sessions"
+	| "fork"
+	| "resume"
+	| "capabilities";
+
+const ASSISTANT_QUICK_ACTIONS: Array<{
+	id: AssistantQuickActionId;
+	label: string;
+}> = [
+	{ id: "status", label: "Status" },
+	{ id: "sessions", label: "Sessions" },
+	{ id: "fork", label: "Fork" },
+	{ id: "resume", label: "Resume" },
+	{ id: "capabilities", label: "Capabilities" },
+];
 
 /**
  * Props for ChatInput component
@@ -89,6 +106,8 @@ export interface ChatInputProps {
 	models?: SessionModelState;
 	/** Callback when model is changed */
 	onModelChange?: (modelId: string) => void;
+	/** Run an assistant slash prompt (used by quick action bar) */
+	onRunAssistantPrompt: (prompt: string) => Promise<boolean>;
 	/** Whether the agent supports image attachments */
 	supportsImages?: boolean;
 	/** Current agent ID (used to clear images on agent switch) */
@@ -140,6 +159,7 @@ export function ChatInput({
 	onModeChange,
 	models,
 	onModelChange,
+	onRunAssistantPrompt,
 	supportsImages = false,
 	agentId,
 	// Controlled component props
@@ -166,6 +186,9 @@ export function ChatInput({
 	const [hintText, setHintText] = useState<string | null>(null);
 	const [commandText, setCommandText] = useState<string>("");
 	const [isDraggingOver, setIsDraggingOver] = useState(false);
+	const [assistantActionId, setAssistantActionId] =
+		useState<AssistantQuickActionId>("status");
+	const [assistantResumeArg, setAssistantResumeArg] = useState("latest");
 
 	// Refs
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -547,6 +570,32 @@ export function ChatInput({
 		onStopGeneration,
 		onInputChange,
 		onAttachedImagesChange,
+	]);
+
+	/**
+	 * Run a quick assistant slash action from the bottom toolbar.
+	 */
+	const runAssistantQuickAction = useCallback(async () => {
+		if (!isSessionReady || isRestoringSession || isSending) {
+			new Notice("[Agent Client] Session is not ready for assistant actions.");
+			return;
+		}
+		let prompt = `/${assistantActionId}`;
+		if (assistantActionId === "resume") {
+			const token = assistantResumeArg.trim();
+			prompt = token ? `/resume ${token}` : "/resume";
+		}
+		const ok = await onRunAssistantPrompt(prompt);
+		if (!ok) {
+			new Notice("[Agent Client] Could not start assistant action.");
+		}
+	}, [
+		isSessionReady,
+		isRestoringSession,
+		isSending,
+		assistantActionId,
+		assistantResumeArg,
+		onRunAssistantPrompt,
 	]);
 
 	/**
@@ -1049,6 +1098,52 @@ export function ChatInput({
 							/>
 						</div>
 					)}
+
+					{/* Assistant Quick Actions */}
+					<div className="agent-client-assistant-inline">
+						<select
+							className="agent-client-assistant-inline-select"
+							value={assistantActionId}
+							onChange={(e) =>
+								setAssistantActionId(
+									e.target.value as AssistantQuickActionId,
+								)
+							}
+							disabled={!isSessionReady || isRestoringSession || isSending}
+							title="Assistant quick action"
+						>
+							{ASSISTANT_QUICK_ACTIONS.map((action) => (
+								<option key={action.id} value={action.id}>
+									{action.label}
+								</option>
+							))}
+						</select>
+						{assistantActionId === "resume" && (
+							<select
+								className="agent-client-assistant-inline-select"
+								value={assistantResumeArg}
+								onChange={(e) =>
+									setAssistantResumeArg(e.target.value)
+								}
+								disabled={
+									!isSessionReady || isRestoringSession || isSending
+								}
+								title="Resume target"
+							>
+								<option value="latest">latest</option>
+								<option value="">list sessions first</option>
+							</select>
+						)}
+						<button
+							type="button"
+							className="agent-client-assistant-inline-run"
+							onClick={() => void runAssistantQuickAction()}
+							disabled={!isSessionReady || isRestoringSession || isSending}
+							title="Run assistant action"
+						>
+							Run
+						</button>
+					</div>
 
 					{/* Send/Stop Button */}
 					<button

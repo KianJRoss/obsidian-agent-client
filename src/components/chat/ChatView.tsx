@@ -4,6 +4,7 @@ import {
 	Platform,
 	Notice,
 	FileSystemAdapter,
+	TFile,
 } from "obsidian";
 import * as React from "react";
 const { useState, useRef, useEffect, useMemo, useCallback } = React;
@@ -16,7 +17,7 @@ import type { ChatInputState } from "../../domain/models/chat-input-state";
 import { ChatHeader, type HeaderQuickAction } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
-import { OperationsPanel } from "./OperationsPanel";
+import { OperationsPanel, type FocusCourseOption } from "./OperationsPanel";
 import type { AttachedImage } from "./ImagePreviewStrip";
 import { SessionHistoryModal } from "./SessionHistoryModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
@@ -104,6 +105,13 @@ const HEADER_QUICK_ACTION_PRESETS: HeaderQuickActionPreset[] = [
 ];
 
 const MAX_HEADER_QUICK_ACTIONS = 4;
+
+const DEFAULT_FOCUS_COURSE_OPTIONS: FocusCourseOption[] = [
+	{
+		id: "",
+		label: "Current Focus / No Course Override",
+	},
+];
 
 function ChatComponent({
 	plugin,
@@ -387,6 +395,42 @@ function ChatComponent({
 			}),
 		);
 	}, [session.availableCommands]);
+
+	const focusCourseOptions = useMemo<FocusCourseOption[]>(() => {
+		const files = plugin.app.vault.getMarkdownFiles();
+		const byId = new Map<string, string>();
+
+		for (const file of files) {
+			const markdown = file as TFile;
+			const pathLower = markdown.path.toLowerCase();
+			if (!pathLower.includes("/courses/")) {
+				continue;
+			}
+			const sourceText = `${markdown.basename} ${markdown.path}`;
+			const match = sourceText.match(/\b\d{4,8}\b/);
+			if (!match) {
+				continue;
+			}
+			const courseId = match[0];
+			if (byId.has(courseId)) {
+				continue;
+			}
+			let label = markdown.basename;
+			if (!label.includes(courseId)) {
+				label = `${label} (${courseId})`;
+			}
+			byId.set(courseId, label);
+			if (byId.size >= 80) {
+				break;
+			}
+		}
+
+		const sorted = Array.from(byId.entries())
+			.sort((a, b) => a[1].localeCompare(b[1]))
+			.map(([id, label]) => ({ id, label }));
+
+		return [...DEFAULT_FOCUS_COURSE_OPTIONS, ...sorted];
+	}, [plugin.app.vault]);
 
 	// ============================================================
 	// Callbacks
@@ -1228,6 +1272,7 @@ function ChatComponent({
 
 			<OperationsPanel
 				availableCommands={session.availableCommands || []}
+				focusCourseOptions={focusCourseOptions}
 				isBusy={!isSessionReady || sessionHistory.loading || isSending}
 				onRunPrompt={runOperationPrompt}
 			/>
@@ -1279,6 +1324,7 @@ function ChatComponent({
 				onModeChange={(modeId) => void agentSession.setMode(modeId)}
 				models={session.models}
 				onModelChange={(modelId) => void agentSession.setModel(modelId)}
+				onRunAssistantPrompt={runOperationPrompt}
 				supportsImages={session.promptCapabilities?.image ?? false}
 				agentId={session.agentId}
 				// Controlled component props (for broadcast commands)

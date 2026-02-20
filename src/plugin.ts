@@ -110,7 +110,7 @@ const DEFAULT_SETTINGS: AgentClientPluginSettings = {
 	customAgents: [],
 	defaultAgentId: "claude-code-acp",
 	autoAllowPermissions: false,
-	autoMentionActiveNote: true,
+	autoMentionActiveNote: false,
 	debugMode: false,
 	nodePath: "",
 	exportSettings: {
