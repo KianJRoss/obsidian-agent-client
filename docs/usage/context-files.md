@@ -1,4 +1,4 @@
-# Context Files
+﻿# Context Files
 
 Provide additional context to your AI agent using context files.
 
@@ -12,13 +12,11 @@ Context files are an agent feature, not a plugin feature. Refer to your agent's 
 
 ## Supported Context Files
 
-Each agent uses its own context file:
+Use a context file supported by your custom ACP backend:
 
 | Agent | Context File |
 |-------|--------------|
-| Claude Code | `CLAUDE.md` |
-| Codex | `AGENTS.md` |
-| Gemini CLI | `GEMINI.md` |
+| Custom ACP backend | Backend-defined (e.g., `AGENTS.md`, `GEMINI.md`) |
 
 Place the context file in your **vault root** to have the agent read it automatically.
 
@@ -55,3 +53,5 @@ This vault contains my personal notes and research.
 - Sensitive information (API keys, passwords)
 - Very long files (agents have context limits)
 - Outdated information
+
+

@@ -1,4 +1,4 @@
-# FAQ
+﻿# FAQ
 
 Frequently asked questions about Agent Client.
 
@@ -6,7 +6,7 @@ Frequently asked questions about Agent Client.
 
 ### What is Agent Client?
 
-Agent Client is an Obsidian plugin that lets you chat with AI agents directly within Obsidian. It supports Claude Code, Codex, Gemini CLI, and any ACP-compatible agent. The plugin uses the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) to communicate with agents.
+Agent Client is an Obsidian plugin that lets you chat with AI agents directly within Obsidian. It supports ACP-compatible custom agents. The plugin uses the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) to communicate with agents.
 
 ### Is this an official Anthropic/OpenAI/Google plugin?
 
@@ -30,11 +30,11 @@ See [Note Mentions](/usage/mentions) for details.
 
 ### Can I change the character limit for mentions?
 
-Yes. Configure **Max note length** and **Max selection length** in **Settings → Agent Client → Mentions**. The default is 10,000 characters each.
+Yes. Configure **Max note length** and **Max selection length** in **Settings â†’ Agent Client â†’ Mentions**. The default is 10,000 characters each.
 
 ### What is auto-mention?
 
-When enabled (**Settings → Agent Client → Mentions → Auto-mention active note**), the currently open note is automatically included as context. Unlike manual mentions, auto-mention only sends the note's file path—not its content. The agent can use its Read tool to access the content if needed.
+When enabled (**Settings â†’ Agent Client â†’ Mentions â†’ Auto-mention active note**), the currently open note is automatically included as context. Unlike manual mentions, auto-mention only sends the note's file pathâ€”not its content. The agent can use its Read tool to access the content if needed.
 
 ### Can I include just part of a note?
 
@@ -42,19 +42,19 @@ Yes. If you select text in your note, only that selection is sent as context. Th
 
 ### How do I temporarily disable auto-mention?
 
-Click the **×** button next to the auto-mention badge above the input field. Click **+** to re-enable it. This only affects the current message.
+Click the **Ã—** button next to the auto-mention badge above the input field. Click **+** to re-enable it. This only affects the current message.
 
 ## Agents
 
 ### How do I switch between agents?
 
-Click the **⋮** (ellipsis) menu in the chat header and select **"Switch agent"**. The agent switches immediately. This is a one-time change for that view only.
+Click the **â‹®** (ellipsis) menu in the chat header and select **"Switch agent"**. The agent switches immediately. This is a one-time change for that view only.
 
-To change the default agent for new chat views, go to **Settings → Agent Client → Default agent**.
+To change the default agent for new chat views, go to **Settings â†’ Agent Client â†’ Default agent**.
 
 ### Can I run multiple agents at the same time?
 
-Yes. Open multiple chat views using **"Open new chat view"** from the command palette or the **⋮** menu in the chat header. Each view runs an independent agent process.
+Yes. Open multiple chat views using **"Open new chat view"** from the command palette or the **â‹®** menu in the chat header. Each view runs an independent agent process.
 
 See [Multi-Session Chat](/usage/multi-session) for details.
 
@@ -67,11 +67,11 @@ Use the **Broadcast** commands:
 
 ### Where do new chat views open?
 
-By default, new views open in the right pane. You can change this in **Settings → Agent Client → Display → Chat view location** to open in editor tabs or splits instead.
+By default, new views open in the right pane. You can change this in **Settings â†’ Agent Client â†’ Display â†’ Chat view location** to open in editor tabs or splits instead.
 
 ### What is a custom agent?
 
-Any ACP-compatible agent beyond the built-in ones (Claude Code, Codex, Gemini CLI). You can add custom agents in **Settings → Agent Client → Custom agents**. See [Custom Agents](/agent-setup/custom-agents).
+Any ACP-compatible custom agent. You can add custom agents in **Settings â†’ Agent Client â†’ Custom agents**. See [Custom Agents](/agent-setup/custom-agents).
 
 ### Do all agents support the same features?
 
@@ -85,7 +85,7 @@ Slash commands are provided by the agent, not the plugin. If the input placehold
 
 ### Why are the commands different from what I expected?
 
-Each agent provides its own commands. Claude Code, Codex, and Gemini CLI all have different command sets. Refer to your agent's documentation for available commands.
+Each agent provides its own commands, and command sets vary by provider. Refer to your agent's documentation for available commands.
 
 ## Permissions
 
@@ -95,7 +95,7 @@ Some agents request permission before performing certain actions (like editing f
 
 ### Can I auto-approve all permissions?
 
-Yes. Enable **Settings → Agent Client → Permissions → Auto-allow permissions**. Use with caution—this gives agents full access without confirmation prompts.
+Yes. Enable **Settings â†’ Agent Client â†’ Permissions â†’ Auto-allow permissions**. Use with cautionâ€”this gives agents full access without confirmation prompts.
 
 ### Some agents don't ask for permission at all?
 
@@ -109,7 +109,7 @@ Click the **export button** in the chat header. The conversation is saved as a M
 
 ### Where are exports saved?
 
-By default, exports are saved to the `Agent Client` folder in your vault. You can change this in **Settings → Agent Client → Export → Export folder**.
+By default, exports are saved to the `Agent Client` folder in your vault. You can change this in **Settings â†’ Agent Client â†’ Export â†’ Export folder**.
 
 ### Can I auto-export conversations?
 
@@ -117,7 +117,7 @@ Yes. Enable **Auto-export on new chat** or **Auto-export on close chat** in expo
 
 ### Can I customize the frontmatter tag?
 
-Yes. In **Settings → Agent Client → Export → Frontmatter tag**, you can set a custom tag. Nested tags like `projects/agent-client` are supported.
+Yes. In **Settings â†’ Agent Client â†’ Export â†’ Frontmatter tag**, you can set a custom tag. Nested tags like `projects/agent-client` are supported.
 
 ## Session History
 
@@ -129,7 +129,7 @@ See [Session History](/usage/session-history) for details.
 
 ### What's the difference between Restore and Fork?
 
-**Restore** continues the existing session—new messages are added to the same conversation. **Fork** creates a new session branching from that point, leaving the original session unchanged.
+**Restore** continues the existing sessionâ€”new messages are added to the same conversation. **Fork** creates a new session branching from that point, leaving the original session unchanged.
 
 ### The modal says "This agent does not support session restoration"
 
@@ -147,7 +147,7 @@ Yes. Open the session history modal and click the **Delete** button (trash icon)
 
 ### What is WSL mode?
 
-WSL (Windows Subsystem for Linux) mode runs agents inside a Linux environment on Windows. Enable it in **Settings → Agent Client → Windows Subsystem for Linux → Enable WSL mode**. This is useful for agents that work better in Linux environments.
+WSL (Windows Subsystem for Linux) mode runs agents inside a Linux environment on Windows. Enable it in **Settings â†’ Agent Client â†’ Windows Subsystem for Linux â†’ Enable WSL mode**. This is useful for agents that work better in Linux environments.
 
 ### Do I need to specify a WSL distribution?
 
@@ -159,7 +159,7 @@ Only if you have multiple WSL distributions installed and want to use a specific
 
 The plugin itself is free and open source. However, using AI agents may incur costs depending on the agent and your authentication method.
 
-### API key vs account login—what's the difference?
+### API key vs account loginâ€”what's the difference?
 
 - **API key**: Billed per usage by the AI provider. You pay for what you use.
 - **Account login**: Uses your subscription's included usage. May have limits depending on your plan.
@@ -178,4 +178,6 @@ The plugin itself is free and open source. However, using AI agents may incur co
 - Your OS and Obsidian version
 - The agent you're using
 - Steps to reproduce
-- Error messages (enable **Debug Mode** in **Settings → Agent Client → Developer**)
+- Error messages (enable **Debug Mode** in **Settings â†’ Agent Client â†’ Developer**)
+
+

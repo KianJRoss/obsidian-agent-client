@@ -18,7 +18,7 @@
  * via environment variables (e.g., API keys, paths, feature flags).
  */
 export interface AgentEnvVar {
-	/** Environment variable name (e.g., "ANTHROPIC_API_KEY") */
+	/** Environment variable name (e.g., "OPENROUTER_API_KEY") */
 	key: string;
 
 	/** Environment variable value */
@@ -34,10 +34,10 @@ export interface AgentEnvVar {
  *
  * Defines the common properties needed to launch and communicate
  * with any ACP-compatible agent, regardless of the specific
- * implementation (Claude Code, Gemini CLI, custom agents, etc.).
+ * implementation.
  */
 export interface BaseAgentSettings {
-	/** Unique identifier for this agent (e.g., "claude", "gemini", "custom-1") */
+	/** Unique identifier for this agent (e.g., "custom-1") */
 	id: string;
 
 	/** Human-readable display name shown in UI */
@@ -51,36 +51,6 @@ export interface BaseAgentSettings {
 
 	/** Environment variables for the agent process */
 	env: AgentEnvVar[];
-}
-
-/**
- * Configuration for Gemini CLI agent.
- *
- * Extends base settings with Gemini-specific requirements.
- */
-export interface GeminiAgentSettings extends BaseAgentSettings {
-	/** Gemini API key (GEMINI_API_KEY) */
-	apiKey: string;
-}
-
-/**
- * Configuration for Claude Code agent.
- *
- * Extends base settings with Claude-specific requirements.
- */
-export interface ClaudeAgentSettings extends BaseAgentSettings {
-	/** Anthropic API key for Claude (ANTHROPIC_API_KEY) */
-	apiKey: string;
-}
-
-/**
- * Configuration for Codex CLI agent.
- *
- * Extends base settings with Codex-specific requirements.
- */
-export interface CodexAgentSettings extends BaseAgentSettings {
-	/** OpenAI API key for Codex (OPENAI_API_KEY) */
-	apiKey: string;
 }
 
 /**

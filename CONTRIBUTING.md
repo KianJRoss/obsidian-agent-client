@@ -1,4 +1,4 @@
-# Contributing to Agent Client Plugin
+﻿# Contributing to Agent Client Plugin
 
 Thank you for your interest in contributing to the Agent Client plugin!
 
@@ -64,7 +64,7 @@ npm run dev
 ### Testing in Obsidian
 
 1. After cloning to `.obsidian/plugins/agent-client`, run `npm run dev`
-2. Enable the plugin in Obsidian Settings → Community Plugins
+2. Enable the plugin in Obsidian Settings â†’ Community Plugins
 3. Code changes trigger automatic rebuilds, but you need to reload the plugin (toggle it off/on in Community Plugins) to see changes
 
 ## Available Commands
@@ -97,11 +97,11 @@ We use `eslint-plugin-obsidianmd` for Obsidian-specific rules and `typescript-es
 
 ### Obsidian Plugin Guidelines
 
-1. **No innerHTML/outerHTML** — Use `createEl`, `createDiv`, `createSpan`
-2. **Don't detach leaves in onunload** — This is an anti-pattern
-3. **Styles in CSS only** — No JS style manipulation
-4. **Use Platform API** — Don't use `process.platform`
-5. **Minimize `any`** — Use proper types
+1. **No innerHTML/outerHTML** â€” Use `createEl`, `createDiv`, `createSpan`
+2. **Don't detach leaves in onunload** â€” This is an anti-pattern
+3. **Styles in CSS only** â€” No JS style manipulation
+4. **Use Platform API** â€” Don't use `process.platform`
+5. **Minimize `any`** â€” Use proper types
 
 ### File Naming Conventions
 
@@ -119,11 +119,11 @@ We use `eslint-plugin-obsidianmd` for Obsidian-specific rules and `typescript-es
 
 **Types:**
 
-- `feature/` — New feature
-- `fix/` — Bug fix
-- `refactor/` — Refactoring
-- `docs/` — Documentation
-- `hotfix/` — Urgent fix
+- `feature/` â€” New feature
+- `fix/` â€” Bug fix
+- `refactor/` â€” Refactoring
+- `docs/` â€” Documentation
+- `hotfix/` â€” Urgent fix
 
 **Examples:**
 
@@ -142,12 +142,12 @@ We recommend [Conventional Commits](https://www.conventionalcommits.org/) style:
 
 **Types:**
 
-- `feat:` — New feature
-- `fix:` — Bug fix
-- `refactor:` — Refactoring
-- `docs:` — Documentation
-- `chore:` — Build/dependencies
-- `style:` — Formatting (no functional changes)
+- `feat:` â€” New feature
+- `fix:` â€” Bug fix
+- `refactor:` â€” Refactoring
+- `docs:` â€” Documentation
+- `chore:` â€” Build/dependencies
+- `style:` â€” Formatting (no functional changes)
 
 ## Pull Request Process
 
@@ -180,29 +180,29 @@ Pull requests automatically run:
 
 Please ensure these pass locally before submitting.
 
-**Note:** "Use sentence case for UI text" lint errors are acceptable for brand names and proper nouns (e.g., "Claude Code", "Gemini CLI").
+**Note:** "Use sentence case for UI text" lint errors are acceptable for brand names and proper nouns.
 
 ## Architecture Overview
 
 ```
 src/
-├── domain/         # Pure domain models + ports (interfaces)
-│   ├── models/     # agent-config, chat-message, session-update, etc.
-│   └── ports/      # IAgentClient, ISettingsAccess, IVaultAccess
-├── adapters/       # Interface implementations
-│   ├── acp/        # ACP protocol implementation
-│   └── obsidian/   # Obsidian-specific implementations
-├── hooks/          # React custom hooks (state + logic)
-├── components/     # UI components
-└── shared/         # Utility functions
+â”œâ”€â”€ domain/         # Pure domain models + ports (interfaces)
+â”‚   â”œâ”€â”€ models/     # agent-config, chat-message, session-update, etc.
+â”‚   â””â”€â”€ ports/      # IAgentClient, ISettingsAccess, IVaultAccess
+â”œâ”€â”€ adapters/       # Interface implementations
+â”‚   â”œâ”€â”€ acp/        # ACP protocol implementation
+â”‚   â””â”€â”€ obsidian/   # Obsidian-specific implementations
+â”œâ”€â”€ hooks/          # React custom hooks (state + logic)
+â”œâ”€â”€ components/     # UI components
+â””â”€â”€ shared/         # Utility functions
 ```
 
 ### Architecture Principles
 
-1. **Hooks for state and logic** — No ViewModel or Use Case classes
-2. **Pure functions in shared/** — Non-React business logic
-3. **Ports absorb protocol changes** — IAgentClient interface provides isolation
-4. **Domain has zero dependencies** — No `obsidian` or `@agentclientprotocol/sdk` imports
+1. **Hooks for state and logic** â€” No ViewModel or Use Case classes
+2. **Pure functions in shared/** â€” Non-React business logic
+3. **Ports absorb protocol changes** â€” IAgentClient interface provides isolation
+4. **Domain has zero dependencies** â€” No `obsidian` or `@agentclientprotocol/sdk` imports
 
 For more details, see `CLAUDE.md`.
 
@@ -210,8 +210,10 @@ For more details, see `CLAUDE.md`.
 
 - Prioritize implementations that conform to the official (stable) ACP specification
 - If implementing draft/experimental specs, please discuss in an issue first
-- Implementations should work with official ACP-compatible agents (e.g., `@zed-industries/claude-agent-acp`)
+- Implementations should work with custom ACP backends.
 
 ## Questions?
 
 Open an issue if you have any questions!
+
+

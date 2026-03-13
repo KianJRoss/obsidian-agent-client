@@ -41,7 +41,7 @@ import type {
  * before launching the agent process.
  */
 export interface AgentConfig {
-	/** Unique identifier for this agent (e.g., "claude", "gemini") */
+	/** Unique identifier for this agent (e.g., "custom-acp") */
 	id: string;
 
 	/** Display name for the agent */

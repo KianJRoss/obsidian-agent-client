@@ -12,9 +12,6 @@ import type { ISettingsAccess } from "../domain/ports/settings-access.port";
 import type { AgentClientPluginSettings } from "../plugin";
 import type {
 	BaseAgentSettings,
-	ClaudeAgentSettings,
-	GeminiAgentSettings,
-	CodexAgentSettings,
 } from "../domain/models/agent-config";
 import { toAgentConfig } from "../shared/settings-utils";
 
@@ -151,7 +148,14 @@ export interface UseAgentSessionReturn {
  * Get the default agent ID from settings (for new views).
  */
 function getDefaultAgentId(settings: AgentClientPluginSettings): string {
-	return settings.defaultAgentId || settings.claude.id;
+	const defaultId = settings.defaultAgentId?.trim() || "";
+	if (defaultId.length > 0) {
+		return defaultId;
+	}
+	return (
+		settings.customAgents.find((agent) => agent.id.trim().length > 0)?.id ||
+		""
+	);
 }
 
 /**
@@ -161,23 +165,33 @@ function getAvailableAgentsFromSettings(
 	settings: AgentClientPluginSettings,
 ): AgentInfo[] {
 	return [
-		{
-			id: settings.claude.id,
-			displayName: settings.claude.displayName || settings.claude.id,
-		},
-		{
-			id: settings.codex.id,
-			displayName: settings.codex.displayName || settings.codex.id,
-		},
-		{
-			id: settings.gemini.id,
-			displayName: settings.gemini.displayName || settings.gemini.id,
-		},
-		...settings.customAgents.map((agent) => ({
-			id: agent.id,
-			displayName: agent.displayName || agent.id,
-		})),
+		...settings.customAgents
+			.filter((agent) => agent.id.trim().length > 0)
+			.map((agent) => ({
+				id: agent.id,
+				displayName: agent.displayName || agent.id,
+			})),
 	];
+}
+
+function resolveAgentId(
+	settings: AgentClientPluginSettings,
+	requestedAgentId?: string,
+): string {
+	const agents = getAvailableAgentsFromSettings(settings);
+	const availableIds = new Set(agents.map((agent) => agent.id));
+
+	const requested = requestedAgentId?.trim() || "";
+	if (requested.length > 0 && availableIds.has(requested)) {
+		return requested;
+	}
+
+	const defaultId = settings.defaultAgentId?.trim() || "";
+	if (defaultId.length > 0 && availableIds.has(defaultId)) {
+		return defaultId;
+	}
+
+	return agents[0]?.id || "";
 }
 
 /**
@@ -208,15 +222,6 @@ function findAgentSettings(
 	settings: AgentClientPluginSettings,
 	agentId: string,
 ): BaseAgentSettings | null {
-	if (agentId === settings.claude.id) {
-		return settings.claude;
-	}
-	if (agentId === settings.codex.id) {
-		return settings.codex;
-	}
-	if (agentId === settings.gemini.id) {
-		return settings.gemini;
-	}
 	// Search in custom agents
 	const customAgent = settings.customAgents.find(
 		(agent) => agent.id === agentId,
@@ -225,49 +230,13 @@ function findAgentSettings(
 }
 
 /**
- * Build AgentConfig with API key injection for known agents.
+ * Build AgentConfig for the selected custom agent.
  */
 function buildAgentConfigWithApiKey(
-	settings: AgentClientPluginSettings,
 	agentSettings: BaseAgentSettings,
-	agentId: string,
 	workingDirectory: string,
 ) {
 	const baseConfig = toAgentConfig(agentSettings, workingDirectory);
-
-	// Add API keys to environment for Claude, Codex, and Gemini
-	if (agentId === settings.claude.id) {
-		const claudeSettings = agentSettings as ClaudeAgentSettings;
-		return {
-			...baseConfig,
-			env: {
-				...baseConfig.env,
-				ANTHROPIC_API_KEY: claudeSettings.apiKey,
-			},
-		};
-	}
-	if (agentId === settings.codex.id) {
-		const codexSettings = agentSettings as CodexAgentSettings;
-		return {
-			...baseConfig,
-			env: {
-				...baseConfig.env,
-				OPENAI_API_KEY: codexSettings.apiKey,
-			},
-		};
-	}
-	if (agentId === settings.gemini.id) {
-		const geminiSettings = agentSettings as GeminiAgentSettings;
-		return {
-			...baseConfig,
-			env: {
-				...baseConfig.env,
-				GEMINI_API_KEY: geminiSettings.apiKey,
-			},
-		};
-	}
-
-	// Custom agents - no API key injection
 	return baseConfig;
 }
 
@@ -321,8 +290,10 @@ export function useAgentSession(
 ): UseAgentSessionReturn {
 	// Get initial agent info from settings
 	const initialSettings = settingsAccess.getSnapshot();
-	const effectiveInitialAgentId =
-		initialAgentId || getDefaultAgentId(initialSettings);
+	const effectiveInitialAgentId = resolveAgentId(
+		initialSettings,
+		initialAgentId,
+	);
 	const initialAgent = getCurrentAgent(
 		initialSettings,
 		effectiveInitialAgentId,
@@ -351,7 +322,18 @@ export function useAgentSession(
 		async (overrideAgentId?: string) => {
 			// Get current settings and agent info
 			const settings = settingsAccess.getSnapshot();
-			const agentId = overrideAgentId || getDefaultAgentId(settings);
+			const agentId = resolveAgentId(settings, overrideAgentId);
+			if (!agentId) {
+				setSession((prev) => ({ ...prev, state: "error" }));
+				setErrorInfo({
+					title: "No Custom Agents Configured",
+					message:
+						"Add at least one custom agent in Settings > Agent Client > Custom agents.",
+					suggestion:
+						"Set path, arguments, and environment variables (for example GEMINI_API_KEY / OPENROUTER_API_KEY).",
+				});
+				return;
+			}
 			const currentAgent = getCurrentAgent(settings, agentId);
 
 			// Reset to initializing state immediately
@@ -392,9 +374,7 @@ export function useAgentSession(
 
 				// Build AgentConfig with API key injection
 				const agentConfig = buildAgentConfigWithApiKey(
-					settings,
 					agentSettings,
-					agentId,
 					workingDirectory,
 				);
 
@@ -494,8 +474,17 @@ export function useAgentSession(
 		async (sessionId: string) => {
 			// Get current settings and agent info
 			const settings = settingsAccess.getSnapshot();
-			const defaultAgentId = getDefaultAgentId(settings);
-			const currentAgent = getCurrentAgent(settings);
+			const defaultAgentId = resolveAgentId(settings);
+			if (!defaultAgentId) {
+				setSession((prev) => ({ ...prev, state: "error" }));
+				setErrorInfo({
+					title: "No Custom Agents Configured",
+					message:
+						"Add at least one custom agent in Settings > Agent Client > Custom agents.",
+				});
+				return;
+			}
+			const currentAgent = getCurrentAgent(settings, defaultAgentId);
 
 			// Reset to initializing state immediately
 			setSession((prev) => ({
@@ -534,9 +523,7 @@ export function useAgentSession(
 
 				// Build AgentConfig with API key injection
 				const agentConfig = buildAgentConfigWithApiKey(
-					settings,
 					agentSettings,
-					defaultAgentId,
 					workingDirectory,
 				);
 

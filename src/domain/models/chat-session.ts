@@ -131,7 +131,7 @@ export interface SessionModeState {
  * This is an experimental feature and may change.
  */
 export interface SessionModel {
-	/** Unique identifier for this model (e.g., "claude-sonnet-4") */
+	/** Unique identifier for this model (e.g., "openrouter/sonnet-4") */
 	modelId: string;
 
 	/** Human-readable name for display */
@@ -180,7 +180,7 @@ export interface ChatSession {
 	/** Current state of the session */
 	state: SessionState;
 
-	/** ID of the active agent (claude, gemini, or custom agent ID) */
+	/** ID of the active custom agent */
 	agentId: string;
 
 	/** Display name of the agent at session creation time */

@@ -1,10 +1,10 @@
----
+﻿---
 layout: home
 
 hero:
   name: "Agent Client"
   text: "AI Agents in Obsidian"
-  tagline: Chat with Claude Code, Codex, Gemini CLI, and more — right from your vault
+  tagline: Chat with custom ACP agents â€” right from your vault
   actions:
     - theme: brand
       text: Get Started
@@ -14,22 +14,22 @@ hero:
       link: https://github.com/RAIT-09/obsidian-agent-client
 
 features:
-  - icon: 🤖
+  - icon: bot
     title: Direct Agent Integration
     details: Chat with AI coding agents in a dedicated right-side panel
-  - icon: 📝
+  - icon: note
     title: Note Mentions
     details: Mention any note with @notename to include its content in your prompt
-  - icon: ⚡
+  - icon: bolt
     title: Slash Commands
     details: Use / commands to quickly trigger agent actions
-  - icon: 🔄
+  - icon: switch
     title: Multi-Agent Support
-    details: Switch between Claude Code, Codex, Gemini CLI, and custom agents
-  - icon: 🎛️
+    details: Switch between custom ACP agents
+  - icon: sliders
     title: Mode & Model Selection
     details: Change AI models and agent modes directly from the chat
-  - icon: 💻
+  - icon: terminal
     title: Terminal Integration
     details: Let your agent execute commands and return results in chat
 ---
@@ -48,9 +48,6 @@ Agent Client is an Obsidian plugin that brings AI coding agents directly into yo
 
 | Agent | Provider | Integration |
 |-------|----------|-------------|
-| **[Claude Code](https://github.com/anthropics/claude-code)** | Anthropic | via [Zed’s SDK adapter](https://github.com/zed-industries/claude-code-acp) |
-| **[Codex](https://github.com/openai/codex)** | OpenAI | via [Zed’s adapter](https://github.com/zed-industries/codex-acp) |
-| **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** | Google | with `--experimental-acp` option |
 | **Custom** | Various | [Any ACP-compatible agent](https://agentclientprotocol.com/overview/agents) (e.g., OpenCode, Qwen Code, Kiro) |
 
 ### Key Features
@@ -61,3 +58,5 @@ Agent Client is an Obsidian plugin that brings AI coding agents directly into yo
 - **Terminal Integration**: Agents can execute shell commands and show results inline
 
 Ready to get started? Check out the [Installation Guide](/getting-started/).
+
+

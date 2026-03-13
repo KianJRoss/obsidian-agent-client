@@ -1,6 +1,6 @@
-# Installation
+﻿# Installation
 
-::: info 🚧 Under Review
+::: info ðŸš§ Under Review
 This plugin is awaiting approval for **Obsidian Community Plugins**. For now, use **BRAT** (recommended) or manual installation.
 :::
 
@@ -9,7 +9,7 @@ This plugin is awaiting approval for **Obsidian Community Plugins**. For now, us
 ### Via BRAT (Recommended)
 
 1. Install the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin from the Community Plugins browser
-2. In Obsidian settings, go to **Community Plugins → BRAT → Add Beta Plugin**
+2. In Obsidian settings, go to **Community Plugins â†’ BRAT â†’ Add Beta Plugin**
 3. Paste this repo URL:
    ```
    https://github.com/RAIT-09/obsidian-agent-client
@@ -25,14 +25,14 @@ This plugin is awaiting approval for **Obsidian Community Plugins**. For now, us
    - `styles.css`
 2. Create the plugin folder: `VaultFolder/.obsidian/plugins/agent-client/`
 3. Place the downloaded files in this folder
-4. Enable the plugin in **Obsidian Settings → Community Plugins**
+4. Enable the plugin in **Obsidian Settings â†’ Community Plugins**
 
 ## Prerequisites
 
 ### Node.js
 
 ::: tip Not always required
-Node.js is needed for npm-based agents like Claude Code, Codex, and Gemini CLI. If your agent is a standalone binary, you can skip this step.
+Node.js is needed for many custom ACP agent backends. If your agent is a standalone binary, you can skip this step.
 :::
 
 If you need Node.js:
@@ -60,9 +60,11 @@ where.exe node
 
 ### Configure Node.js Path
 
-1. Open **Settings → Agent Client**
+1. Open **Settings â†’ Agent Client**
 2. Enter the Node.js path in the **Node.js path** field
 
 ## Next Steps
 
 Continue to [Quick Start](./quick-start) to set up your first agent and start chatting!
+
+

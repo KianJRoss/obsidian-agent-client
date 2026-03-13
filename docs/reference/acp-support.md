@@ -1,4 +1,4 @@
-# ACP Protocol Support
+﻿# ACP Protocol Support
 
 This page documents which Agent Client Protocol (ACP) features are supported by this plugin.
 
@@ -6,85 +6,85 @@ This page documents which Agent Client Protocol (ACP) features are supported by 
 
 The [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) is an open standard for communication between AI agents and client applications. It defines how clients send prompts, receive responses, handle permissions, and manage sessions.
 
-Agent Client implements ACP as a **client**, communicating with ACP-compatible agents like Claude Code, Codex, and Gemini CLI.
+Agent Client implements ACP as a **client**, communicating with ACP-compatible custom ACP backends.
 
 ## Methods
 
-### Client → Agent
+### Client â†’ Agent
 
 Methods the plugin can call on agents.
 
 | Method | Status | Notes |
 |--------|--------|-------|
-| `initialize` | ✅ Supported | |
-| `authenticate` | ✅ Supported | |
-| `session/new` | ✅ Supported | |
-| `session/prompt` | ✅ Supported | |
-| `session/cancel` | ✅ Supported | |
-| `session/set_mode` | ✅ Supported | |
-| `session/load` | ✅ Supported | |
-| `session/set_model` | ✅ Supported | Unstable API |
-| `session/list` | ✅ Supported | Unstable API |
-| `session/resume` | ✅ Supported | Unstable API |
-| `session/fork` | ✅ Supported | Unstable API |
+| `initialize` | âœ… Supported | |
+| `authenticate` | âœ… Supported | |
+| `session/new` | âœ… Supported | |
+| `session/prompt` | âœ… Supported | |
+| `session/cancel` | âœ… Supported | |
+| `session/set_mode` | âœ… Supported | |
+| `session/load` | âœ… Supported | |
+| `session/set_model` | âœ… Supported | Unstable API |
+| `session/list` | âœ… Supported | Unstable API |
+| `session/resume` | âœ… Supported | Unstable API |
+| `session/fork` | âœ… Supported | Unstable API |
 
 ::: tip
 Methods marked "Unstable API" may change in future ACP versions. They are prefixed with `unstable_` in the SDK.
 :::
 
-### Agent → Client (Notifications)
+### Agent â†’ Client (Notifications)
 
 Session updates the plugin can receive from agents via `session/update`.
 
 | Update Type | Status | Notes |
 |-------------|--------|-------|
-| `agent_message_chunk` | ✅ Supported | Text only |
-| `agent_thought_chunk` | ✅ Supported | Text only |
-| `user_message_chunk` | ✅ Supported | Text only; used for session history replay |
-| `tool_call` | ✅ Supported | |
-| `tool_call_update` | ✅ Supported | |
-| `plan` | ✅ Supported | |
-| `available_commands_update` | ✅ Supported | |
-| `current_mode_update` | ✅ Supported | |
+| `agent_message_chunk` | âœ… Supported | Text only |
+| `agent_thought_chunk` | âœ… Supported | Text only |
+| `user_message_chunk` | âœ… Supported | Text only; used for session history replay |
+| `tool_call` | âœ… Supported | |
+| `tool_call_update` | âœ… Supported | |
+| `plan` | âœ… Supported | |
+| `available_commands_update` | âœ… Supported | |
+| `current_mode_update` | âœ… Supported | |
 
-### Agent → Client (Requests)
+### Agent â†’ Client (Requests)
 
 Requests agents can make to the plugin.
 
 | Method | Status | Notes |
 |--------|--------|-------|
-| `session/request_permission` | ✅ Supported | |
-| `terminal/create` | ✅ Supported | |
-| `terminal/output` | ✅ Supported | |
-| `terminal/wait_for_exit` | ✅ Supported | |
-| `terminal/kill` | ✅ Supported | |
-| `terminal/release` | ✅ Supported | |
-| `fs/read_text_file` | — | Agents use their own Read tools |
-| `fs/write_text_file` | — | Agents use their own Write tools |
+| `session/request_permission` | âœ… Supported | |
+| `terminal/create` | âœ… Supported | |
+| `terminal/output` | âœ… Supported | |
+| `terminal/wait_for_exit` | âœ… Supported | |
+| `terminal/kill` | âœ… Supported | |
+| `terminal/release` | âœ… Supported | |
+| `fs/read_text_file` | â€” | Agents use their own Read tools |
+| `fs/write_text_file` | â€” | Agents use their own Write tools |
 
 ## Content Types
 
-### Prompt Content (Client → Agent)
+### Prompt Content (Client â†’ Agent)
 
 Content types the plugin can send in `session/prompt`.
 
 | Type | Status | Notes |
 |------|--------|-------|
-| `text` | ✅ Supported | |
-| `image` | ✅ Supported | Requires agent support |
-| `audio` | ❌ Not supported | |
-| `resource_link` | ❌ Not supported | |
-| `resource` | ✅ Supported | Embedded context; requires agent support |
+| `text` | âœ… Supported | |
+| `image` | âœ… Supported | Requires agent support |
+| `audio` | âŒ Not supported | |
+| `resource_link` | âŒ Not supported | |
+| `resource` | âœ… Supported | Embedded context; requires agent support |
 
-### Tool Call Content (Agent → Client)
+### Tool Call Content (Agent â†’ Client)
 
 Content types the plugin can display in tool calls.
 
 | Type | Status | Notes |
 |------|--------|-------|
-| `diff` | ✅ Supported | |
-| `terminal` | ✅ Supported | |
-| `content` | ❌ Not supported | |
+| `diff` | âœ… Supported | |
+| `terminal` | âœ… Supported | |
+| `content` | âŒ Not supported | |
 
 ## Client Capabilities
 
@@ -104,3 +104,5 @@ The plugin does not implement filesystem operations (`fs/read_text_file`, `fs/wr
 
 - [Agent Client Protocol Specification](https://agentclientprotocol.com/)
 - [ACP Schema Reference](https://agentclientprotocol.com/protocol/schema)
+
+

@@ -1,4 +1,4 @@
-# Troubleshooting
+﻿# Troubleshooting
 
 This guide covers common issues and solutions for Agent Client.
 
@@ -15,15 +15,15 @@ The plugin is trying to start the agent process but isn't receiving a response.
 
 **Solutions:**
 
-1. **Verify the agent path** in **Settings → Agent Client → [Agent Name] → Path**
-   - On macOS/Linux, find the path with: `which claude-agent-acp`
-   - On Windows, find the path with: `where claude-agent-acp`
+1. **Verify the agent path** in **Settings â†’ Agent Client â†’ [Agent Name] â†’ Path**
+   - On macOS/Linux, find the path with: `which <agent-command>`
+   - On Windows, find the path with: `where <agent-command>`
 
-2. **Verify Node.js path** in **Settings → Agent Client → Node.js path**
+2. **Verify Node.js path** in **Settings â†’ Agent Client â†’ Node.js path**
    - Many agents require Node.js
    - Find it with: `which node` (macOS/Linux) or `where node` (Windows)
 
-3. **Reload the plugin** after changing path settings (disable then re-enable in Settings → Community plugins)
+3. **Reload the plugin** after changing path settings (disable then re-enable in Settings â†’ Community plugins)
 
 ### "Command Not Found" error
 
@@ -31,7 +31,7 @@ The agent executable cannot be found at the specified path.
 
 **Solutions:**
 
-1. Use the full absolute path (e.g., `/usr/local/bin/claude-agent-acp` instead of just `claude-agent-acp`)
+1. Use the full absolute path (e.g., `/usr/local/bin/<agent-command>` instead of just `<agent-command>`)
 2. Verify the agent is installed by running it directly in Terminal
 3. On Windows, include the `.cmd` extension if needed
 
@@ -41,22 +41,15 @@ The agent executable cannot be found at the specified path.
 
 The agent requires authentication before processing requests.
 
-**For Claude Code:**
-- **API key**: Set in **Settings → Agent Client → Claude Code (ACP) → API key**
-- **Account login**: Run `claude` in Terminal first and complete the login flow
-
-**For Codex:**
-- Set your OpenAI API key in **Settings → Agent Client → Codex → API key**
-
-**For Gemini CLI:**
-- Set your Google API key in **Settings → Agent Client → Gemini CLI → API key**
-- Or run `gemini` in Terminal first to authenticate with your Google account
+**For custom ACP agents:**
+- Add required keys in **Settings â†’ Agent Client â†’ Custom agents â†’ Environment variables** (for example `GEMINI_API_KEY` and `OPENROUTER_API_KEY`)
+- Verify your backend can read those environment variables at runtime
 
 ### "No Authentication Methods" error
 
 The agent didn't provide authentication options.
 
-**Solution:** Check your agent configuration. The agent may not be properly initialized—try reloading the plugin.
+**Solution:** Check your agent configuration. The agent may not be properly initializedâ€”try reloading the plugin.
 
 ## Rate Limiting
 
@@ -67,10 +60,7 @@ You've sent too many requests.
 **Solutions:**
 
 1. Wait before sending another message
-2. Check your usage limits at the provider's console:
-   - Anthropic: [console.anthropic.com](https://console.anthropic.com/)
-   - OpenAI: [platform.openai.com](https://platform.openai.com/)
-   - Google: [console.cloud.google.com](https://console.cloud.google.com/)
+2. Check your usage limits at the provider's console:   - Google: [console.cloud.google.com](https://console.cloud.google.com/)
 
 ## Session Issues
 
@@ -88,7 +78,7 @@ The agent connected but couldn't create a session.
 
 The selected agent ID doesn't exist in settings.
 
-**Solution:** Go to **Settings → Agent Client** and select a valid agent from the **Active agent** dropdown.
+**Solution:** Go to **Settings â†’ Agent Client** and select a valid agent from the **Active agent** dropdown.
 
 ## Message Sending Issues
 
@@ -119,9 +109,9 @@ The conversation couldn't be saved.
 
 **Solutions:**
 
-1. Check that the export folder exists (**Settings → Agent Client → Export → Export folder**)
+1. Check that the export folder exists (**Settings â†’ Agent Client â†’ Export â†’ Export folder**)
 2. Verify the folder name is valid (no special characters that aren't allowed in folder names)
-3. Check the filename template for invalid characters (**Settings → Agent Client → Export → Filename**)
+3. Check the filename template for invalid characters (**Settings â†’ Agent Client â†’ Export â†’ Filename**)
 
 ## Windows-Specific Issues
 
@@ -132,7 +122,7 @@ The conversation couldn't be saved.
 - A Linux distribution must be installed: Run `wsl --list`
 
 **Settings:**
-- Enable **Settings → Agent Client → Windows Subsystem for Linux → Enable WSL mode**
+- Enable **Settings â†’ Agent Client â†’ Windows Subsystem for Linux â†’ Enable WSL mode**
 - Optionally specify your distribution in **WSL distribution**
 
 ### Agent works in Terminal but not in Obsidian
@@ -167,14 +157,14 @@ Desktop applications on Linux may not inherit PATH settings from `.bashrc`.
 
 **Solutions:**
 
-1. Use the full absolute path (e.g., `/usr/local/bin/gemini` instead of `gemini`)
+1. Use the full absolute path (e.g., `/usr/local/bin/<your-custom-agent>` instead of `<your-custom-agent>`)
 2. Ensure the agent is installed in a standard location (`/usr/bin` or `/usr/local/bin`)
 
 ## Debug Mode
 
 If you need more detailed information about an issue, enable Debug mode:
 
-1. Go to **Settings → Agent Client → Developer → Debug mode**
+1. Go to **Settings â†’ Agent Client â†’ Developer â†’ Debug mode**
 2. Enable the toggle
 3. Open DevTools:
    - macOS: `Cmd + Option + I`
@@ -209,3 +199,4 @@ If you're still experiencing issues:
    - The agent you're using
    - Steps to reproduce
    - Error messages from Debug mode
+

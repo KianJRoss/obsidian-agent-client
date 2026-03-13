@@ -431,7 +431,12 @@ export function ChatInput({
 	 */
 	const handleSelectSlashCommand = useCallback(
 		(command: SlashCommand) => {
-			const newText = slashCommands.selectSuggestion(inputValue, command);
+			const cursorBeforeSelect = textareaRef.current?.selectionStart;
+			const newText = slashCommands.selectSuggestion(
+				inputValue,
+				command,
+				cursorBeforeSelect ?? undefined,
+			);
 			onInputChange(newText);
 
 			// Setup hint overlay if command has hint
@@ -687,6 +692,25 @@ export function ChatInput({
 				return;
 			}
 
+			// Ensure slash-command picker opens immediately after typing "/"
+			if (
+				e.key === "/" &&
+				!e.metaKey &&
+				!e.ctrlKey &&
+				!e.altKey &&
+				!e.nativeEvent.isComposing
+			) {
+				window.setTimeout(() => {
+					const textarea = textareaRef.current;
+					if (!textarea) {
+						return;
+					}
+					const cursorPosition =
+						textarea.selectionStart ?? textarea.value.length;
+					slashCommands.updateSuggestions(textarea.value, cursorPosition);
+				}, 0);
+			}
+
 			// Normal input handling - check if should send based on shortcut setting
 			if (e.key === "Enter" && !e.nativeEvent.isComposing) {
 				const shouldSend =
@@ -705,6 +729,7 @@ export function ChatInput({
 		},
 		[
 			handleDropdownKeyPress,
+			slashCommands,
 			isSending,
 			isButtonDisabled,
 			handleSendOrStop,
@@ -927,7 +952,7 @@ export function ChatInput({
 	}, [currentModelId]);
 
 	// Placeholder text
-	const placeholder = `Message ${agentLabel} - @ to mention notes${availableCommands.length > 0 ? ", / for commands" : ""}`;
+	const placeholder = `Message ${agentLabel} - @ to mention notes, / for commands`;
 
 	return (
 		<div className="agent-client-chat-input-container">

@@ -1,7 +1,7 @@
-# Agent Client Plugin - LLM Developer Guide
+﻿# Agent Client Plugin - LLM Developer Guide
 
 ## Overview
-Obsidian plugin for AI agent interaction (Claude Code, Gemini CLI, custom agents). **React Hooks Architecture**.
+Obsidian plugin for AI agent interaction (custom ACP agents). **React Hooks Architecture**.
 
 **Tech**: React 19, TypeScript, Obsidian API, Agent Client Protocol (ACP)
 
@@ -9,30 +9,30 @@ Obsidian plugin for AI agent interaction (Claude Code, Gemini CLI, custom agents
 
 ```
 src/
-├── domain/                   # Pure domain models + ports (interfaces)
-│   ├── models/               # agent-config, agent-error, chat-message, chat-session
-│   └── ports/                # IAgentClient, ISettingsAccess, IVaultAccess
-├── adapters/                 # Interface implementations
-│   ├── acp/                  # ACP protocol (acp.adapter.ts, acp-type-converter.ts)
-│   └── obsidian/             # Platform adapters (vault, settings, mention-service)
-├── hooks/                    # React custom hooks (state + logic)
-│   ├── useAgentSession.ts    # Session lifecycle, agent switching
-│   ├── useChat.ts            # Message sending, callbacks
-│   ├── usePermission.ts      # Permission handling
-│   ├── useMentions.ts        # @[[note]] suggestions
-│   ├── useSlashCommands.ts   # /command suggestions
-│   ├── useAutoMention.ts     # Auto-mention active note
-│   ├── useAutoExport.ts      # Auto-export on new/close
-│   └── useSettings.ts        # Settings subscription
-├── components/               # UI components
-│   ├── chat/                 # ChatView, ChatHeader, ChatMessages, ChatInput, etc.
-│   └── settings/             # AgentClientSettingTab
-├── shared/                   # Utilities
-│   ├── message-service.ts    # prepareMessage, sendPreparedMessage (pure functions)
-│   ├── terminal-manager.ts   # Process spawn, stdout/stderr capture
-│   ├── logger.ts, chat-exporter.ts, mention-utils.ts, etc.
-├── plugin.ts                 # Obsidian plugin lifecycle, settings persistence
-└── main.ts                   # Entry point
+â”œâ”€â”€ domain/                   # Pure domain models + ports (interfaces)
+â”‚   â”œâ”€â”€ models/               # agent-config, agent-error, chat-message, chat-session
+â”‚   â””â”€â”€ ports/                # IAgentClient, ISettingsAccess, IVaultAccess
+â”œâ”€â”€ adapters/                 # Interface implementations
+â”‚   â”œâ”€â”€ acp/                  # ACP protocol (acp.adapter.ts, acp-type-converter.ts)
+â”‚   â””â”€â”€ obsidian/             # Platform adapters (vault, settings, mention-service)
+â”œâ”€â”€ hooks/                    # React custom hooks (state + logic)
+â”‚   â”œâ”€â”€ useAgentSession.ts    # Session lifecycle, agent switching
+â”‚   â”œâ”€â”€ useChat.ts            # Message sending, callbacks
+â”‚   â”œâ”€â”€ usePermission.ts      # Permission handling
+â”‚   â”œâ”€â”€ useMentions.ts        # @[[note]] suggestions
+â”‚   â”œâ”€â”€ useSlashCommands.ts   # /command suggestions
+â”‚   â”œâ”€â”€ useAutoMention.ts     # Auto-mention active note
+â”‚   â”œâ”€â”€ useAutoExport.ts      # Auto-export on new/close
+â”‚   â””â”€â”€ useSettings.ts        # Settings subscription
+â”œâ”€â”€ components/               # UI components
+â”‚   â”œâ”€â”€ chat/                 # ChatView, ChatHeader, ChatMessages, ChatInput, etc.
+â”‚   â””â”€â”€ settings/             # AgentClientSettingTab
+â”œâ”€â”€ shared/                   # Utilities
+â”‚   â”œâ”€â”€ message-service.ts    # prepareMessage, sendPreparedMessage (pure functions)
+â”‚   â”œâ”€â”€ terminal-manager.ts   # Process spawn, stdout/stderr capture
+â”‚   â”œâ”€â”€ logger.ts, chat-exporter.ts, mention-utils.ts, etc.
+â”œâ”€â”€ plugin.ts                 # Obsidian plugin lifecycle, settings persistence
+â””â”€â”€ main.ts                   # Entry point
 ```
 
 ## Key Components
@@ -50,7 +50,7 @@ src/
 - `closeSession()`: Cancel session, disconnect
 
 **useChat**: Messaging
-- `sendMessage()`: Prepare (auto-mention, path conversion) → send via IAgentClient
+- `sendMessage()`: Prepare (auto-mention, path conversion) â†’ send via IAgentClient
 - `handleNewChat()`: Export if enabled, restart session
 - Callbacks: addMessage, updateLastMessage, updateMessage
 
@@ -67,7 +67,7 @@ Implements IAgentClient + IAcpClient (terminal ops)
 
 - **Process**: spawn() with login shell (macOS/Linux -l, Windows shell:true)
 - **Protocol**: JSON-RPC over stdin/stdout via ndJsonStream
-- **Flow**: initialize() → newSession() → sendMessage() → sessionUpdate() callbacks
+- **Flow**: initialize() â†’ newSession() â†’ sendMessage() â†’ sessionUpdate() callbacks
 - **Updates**: agent_message_chunk, agent_thought_chunk, tool_call, tool_call_update, plan, available_commands_update
 - **Permissions**: Promise-based Map<requestId, resolver>
 - **Terminal**: createTerminal, terminalOutput, killTerminal, releaseTerminal
@@ -80,7 +80,7 @@ Implements IAgentClient + IAcpClient (terminal ops)
 
 ### Message Service (`shared/message-service.ts`)
 Pure functions (non-React):
-- `prepareMessage()`: Auto-mention, convert @[[note]] → paths
+- `prepareMessage()`: Auto-mention, convert @[[note]] â†’ paths
 - `sendPreparedMessage()`: Send via IAgentClient, auth retry
 
 ## Ports (Interfaces)
@@ -162,7 +162,7 @@ interface ISettingsAccess {
 3. Update `MessageContentRenderer` to render new type
 
 ### Debug
-1. Settings → Developer Settings → Debug Mode ON
+1. Settings â†’ Developer Settings â†’ Debug Mode ON
 2. Open DevTools (Cmd+Option+I / Ctrl+Shift+I)
 3. Filter logs: `[AcpAdapter]`, `[useChat]`, `[NoteMentionService]`
 
@@ -175,10 +175,12 @@ interface ISettingsAccess {
 **Requests**: requestPermission
 
 **Agents**:
-- Claude Code: `@zed-industries/claude-agent-acp` (ANTHROPIC_API_KEY)
-- Gemini CLI: `@anthropics/gemini-cli-acp` (GOOGLE_API_KEY)
+
+- Custom ACP backend: set required env vars (e.g., GEMINI_API_KEY, OPENROUTER_API_KEY)
 - Custom: Any ACP-compatible agent
 
 ---
 
 **Last Updated**: November 2025 | **Architecture**: React Hooks | **Version**: 0.3.0
+
+

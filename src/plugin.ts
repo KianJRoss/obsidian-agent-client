@@ -8,16 +8,11 @@ import {
 import { AgentClientSettingTab } from "./components/settings/AgentClientSettingTab";
 import { AcpAdapter } from "./adapters/acp/acp.adapter";
 import {
-	sanitizeArgs,
-	normalizeEnvVars,
 	normalizeCustomAgent,
 	ensureUniqueCustomAgentIds,
 } from "./shared/settings-utils";
 import {
 	AgentEnvVar,
-	GeminiAgentSettings,
-	ClaudeAgentSettings,
-	CodexAgentSettings,
 	CustomAgentSettings,
 } from "./domain/models/agent-config";
 import type { SavedSessionInfo } from "./domain/models/session-info";
@@ -42,9 +37,6 @@ export type SendMessageShortcut = "enter" | "cmd-enter";
 export type ChatViewLocation = "right-tab" | "editor-tab" | "editor-split";
 
 export interface AgentClientPluginSettings {
-	gemini: GeminiAgentSettings;
-	claude: ClaudeAgentSettings;
-	codex: CodexAgentSettings;
 	customAgents: CustomAgentSettings[];
 	/** Default agent ID for new views (renamed from activeAgentId for multi-session) */
 	defaultAgentId: string;
@@ -83,32 +75,8 @@ export interface AgentClientPluginSettings {
 }
 
 const DEFAULT_SETTINGS: AgentClientPluginSettings = {
-	claude: {
-		id: "claude-code-acp",
-		displayName: "Claude Code",
-		apiKey: "",
-		command: "",
-		args: [],
-		env: [],
-	},
-	codex: {
-		id: "codex-acp",
-		displayName: "Codex",
-		apiKey: "",
-		command: "",
-		args: [],
-		env: [],
-	},
-	gemini: {
-		id: "gemini-cli",
-		displayName: "Gemini CLI",
-		apiKey: "",
-		command: "",
-		args: ["--experimental-acp"],
-		env: [],
-	},
 	customAgents: [],
-	defaultAgentId: "claude-code-acp",
+	defaultAgentId: "",
 	autoAllowPermissions: false,
 	autoMentionActiveNote: false,
 	debugMode: false,
@@ -424,25 +392,10 @@ export default class AgentClientPlugin extends Plugin {
 	}
 
 	/**
-	 * Get all available agents (claude, codex, gemini, custom)
+	 * Get all available agents (custom only)
 	 */
 	getAvailableAgents(): Array<{ id: string; displayName: string }> {
 		return [
-			{
-				id: this.settings.claude.id,
-				displayName:
-					this.settings.claude.displayName || this.settings.claude.id,
-			},
-			{
-				id: this.settings.codex.id,
-				displayName:
-					this.settings.codex.displayName || this.settings.codex.id,
-			},
-			{
-				id: this.settings.gemini.id,
-				displayName:
-					this.settings.gemini.displayName || this.settings.gemini.id,
-			},
 			...this.settings.customAgents.map((agent) => ({
 				id: agent.id,
 				displayName: agent.displayName || agent.id,
@@ -658,27 +611,6 @@ export default class AgentClientPlugin extends Plugin {
 			unknown
 		>;
 
-		const claudeFromRaw =
-			typeof rawSettings.claude === "object" &&
-			rawSettings.claude !== null
-				? (rawSettings.claude as Record<string, unknown>)
-				: {};
-		const codexFromRaw =
-			typeof rawSettings.codex === "object" && rawSettings.codex !== null
-				? (rawSettings.codex as Record<string, unknown>)
-				: {};
-		const geminiFromRaw =
-			typeof rawSettings.gemini === "object" &&
-			rawSettings.gemini !== null
-				? (rawSettings.gemini as Record<string, unknown>)
-				: {};
-
-		const resolvedClaudeArgs = sanitizeArgs(claudeFromRaw.args);
-		const resolvedClaudeEnv = normalizeEnvVars(claudeFromRaw.env);
-		const resolvedCodexArgs = sanitizeArgs(codexFromRaw.args);
-		const resolvedCodexEnv = normalizeEnvVars(codexFromRaw.env);
-		const resolvedGeminiArgs = sanitizeArgs(geminiFromRaw.args);
-		const resolvedGeminiEnv = normalizeEnvVars(geminiFromRaw.env);
 		const customAgents = Array.isArray(rawSettings.customAgents)
 			? ensureUniqueCustomAgentIds(
 					rawSettings.customAgents.map((agent: unknown) => {
@@ -691,12 +623,7 @@ export default class AgentClientPlugin extends Plugin {
 				)
 			: [];
 
-		const availableAgentIds = [
-			DEFAULT_SETTINGS.claude.id,
-			DEFAULT_SETTINGS.codex.id,
-			DEFAULT_SETTINGS.gemini.id,
-			...customAgents.map((agent) => agent.id),
-		];
+		const availableAgentIds = customAgents.map((agent) => agent.id);
 		// Migration: support both old activeAgentId and new defaultAgentId
 		const rawDefaultId =
 			typeof rawSettings.defaultAgentId === "string"
@@ -706,81 +633,13 @@ export default class AgentClientPlugin extends Plugin {
 					: "";
 		const fallbackDefaultId =
 			availableAgentIds.find((id) => id.length > 0) ||
-			DEFAULT_SETTINGS.claude.id;
+			DEFAULT_SETTINGS.defaultAgentId;
 		const defaultAgentId =
 			availableAgentIds.includes(rawDefaultId) && rawDefaultId.length > 0
 				? rawDefaultId
 				: fallbackDefaultId;
 
 		this.settings = {
-			claude: {
-				id: DEFAULT_SETTINGS.claude.id,
-				displayName:
-					typeof claudeFromRaw.displayName === "string" &&
-					claudeFromRaw.displayName.trim().length > 0
-						? claudeFromRaw.displayName.trim()
-						: DEFAULT_SETTINGS.claude.displayName,
-				apiKey:
-					typeof claudeFromRaw.apiKey === "string"
-						? claudeFromRaw.apiKey
-						: DEFAULT_SETTINGS.claude.apiKey,
-				command:
-					typeof claudeFromRaw.command === "string" &&
-					claudeFromRaw.command.trim().length > 0
-						? claudeFromRaw.command.trim()
-						: typeof rawSettings.claudeCodeAcpCommandPath ===
-									"string" &&
-							  rawSettings.claudeCodeAcpCommandPath.trim()
-									.length > 0
-							? rawSettings.claudeCodeAcpCommandPath.trim()
-							: DEFAULT_SETTINGS.claude.command,
-				args: resolvedClaudeArgs.length > 0 ? resolvedClaudeArgs : [],
-				env: resolvedClaudeEnv.length > 0 ? resolvedClaudeEnv : [],
-			},
-			codex: {
-				id: DEFAULT_SETTINGS.codex.id,
-				displayName:
-					typeof codexFromRaw.displayName === "string" &&
-					codexFromRaw.displayName.trim().length > 0
-						? codexFromRaw.displayName.trim()
-						: DEFAULT_SETTINGS.codex.displayName,
-				apiKey:
-					typeof codexFromRaw.apiKey === "string"
-						? codexFromRaw.apiKey
-						: DEFAULT_SETTINGS.codex.apiKey,
-				command:
-					typeof codexFromRaw.command === "string" &&
-					codexFromRaw.command.trim().length > 0
-						? codexFromRaw.command.trim()
-						: DEFAULT_SETTINGS.codex.command,
-				args: resolvedCodexArgs.length > 0 ? resolvedCodexArgs : [],
-				env: resolvedCodexEnv.length > 0 ? resolvedCodexEnv : [],
-			},
-			gemini: {
-				id: DEFAULT_SETTINGS.gemini.id,
-				displayName:
-					typeof geminiFromRaw.displayName === "string" &&
-					geminiFromRaw.displayName.trim().length > 0
-						? geminiFromRaw.displayName.trim()
-						: DEFAULT_SETTINGS.gemini.displayName,
-				apiKey:
-					typeof geminiFromRaw.apiKey === "string"
-						? geminiFromRaw.apiKey
-						: DEFAULT_SETTINGS.gemini.apiKey,
-				command:
-					typeof geminiFromRaw.command === "string" &&
-					geminiFromRaw.command.trim().length > 0
-						? geminiFromRaw.command.trim()
-						: typeof rawSettings.geminiCommandPath === "string" &&
-							  rawSettings.geminiCommandPath.trim().length > 0
-							? rawSettings.geminiCommandPath.trim()
-							: DEFAULT_SETTINGS.gemini.command,
-				args:
-					resolvedGeminiArgs.length > 0
-						? resolvedGeminiArgs
-						: DEFAULT_SETTINGS.gemini.args,
-				env: resolvedGeminiEnv.length > 0 ? resolvedGeminiEnv : [],
-			},
 			customAgents: customAgents,
 			defaultAgentId,
 			autoAllowPermissions:
@@ -961,52 +820,19 @@ export default class AgentClientPlugin extends Plugin {
 
 	/**
 	 * Check for plugin updates.
-	 * - Stable version users: compare with latest stable release
-	 * - Prerelease users: compare with both latest stable and latest prerelease
+	 *
+	 * Local fork behavior:
+	 * Disable upstream update checks so users do not see RAIT release
+	 * notifications for this shelled/custom build.
 	 */
 	async checkForUpdates(): Promise<boolean> {
-		const currentVersion =
-			semver.clean(this.manifest.version) || this.manifest.version;
-		const isCurrentPrerelease = semver.prerelease(currentVersion) !== null;
-
-		if (isCurrentPrerelease) {
-			// Prerelease user: check both stable and prerelease
-			const [latestStable, latestPrerelease] = await Promise.all([
-				this.fetchLatestStable(),
-				this.fetchLatestPrerelease(),
-			]);
-
-			const hasNewerStable =
-				latestStable && semver.gt(latestStable, currentVersion);
-			const hasNewerPrerelease =
-				latestPrerelease && semver.gt(latestPrerelease, currentVersion);
-
-			if (hasNewerStable || hasNewerPrerelease) {
-				// Prefer stable version notification if available
-				const newestVersion = hasNewerStable
-					? latestStable
-					: latestPrerelease;
-				new Notice(
-					`[Agent Client] Update available: v${newestVersion}`,
-				);
-				return true;
-			}
-		} else {
-			// Stable version user: check stable only
-			const latestStable = await this.fetchLatestStable();
-			if (latestStable && semver.gt(latestStable, currentVersion)) {
-				new Notice(`[Agent Client] Update available: v${latestStable}`);
-				return true;
-			}
-		}
-
 		return false;
 	}
 
 	ensureDefaultAgentId(): void {
 		const availableIds = this.collectAvailableAgentIds();
 		if (availableIds.length === 0) {
-			this.settings.defaultAgentId = DEFAULT_SETTINGS.claude.id;
+			this.settings.defaultAgentId = DEFAULT_SETTINGS.defaultAgentId;
 			return;
 		}
 		if (!availableIds.includes(this.settings.defaultAgentId)) {
@@ -1016,9 +842,6 @@ export default class AgentClientPlugin extends Plugin {
 
 	private collectAvailableAgentIds(): string[] {
 		const ids = new Set<string>();
-		ids.add(this.settings.claude.id);
-		ids.add(this.settings.codex.id);
-		ids.add(this.settings.gemini.id);
 		for (const agent of this.settings.customAgents) {
 			if (agent.id && agent.id.length > 0) {
 				ids.add(agent.id);

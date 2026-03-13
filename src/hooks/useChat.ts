@@ -575,14 +575,21 @@ export function useChat(
 				return;
 			}
 
+			// Slash commands are control actions and should run directly without
+			// auto-mention/context injection so backend command handlers can parse them.
+			const trimmedContent = content.trimStart();
+			const isSlashControlCommand = trimmedContent.startsWith("/");
+
 			// Phase 1: Prepare prompt using message-service
 			const prepared = await preparePrompt(
 				{
 					message: content,
 					images: options.images,
-					activeNote: options.activeNote,
+					activeNote: isSlashControlCommand ? null : options.activeNote,
 					vaultBasePath: options.vaultBasePath,
-					isAutoMentionDisabled: options.isAutoMentionDisabled,
+					isAutoMentionDisabled: isSlashControlCommand
+						? true
+						: options.isAutoMentionDisabled,
 					convertToWsl: shouldConvertToWsl,
 					supportsEmbeddedContext:
 						sessionContext.promptCapabilities?.embeddedContext ??

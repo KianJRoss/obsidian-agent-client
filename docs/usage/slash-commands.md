@@ -1,4 +1,4 @@
-# Slash Commands
+﻿# Slash Commands
 
 Use slash commands to trigger actions provided by your current agent.
 
@@ -27,9 +27,9 @@ If the input field placeholder shows `/ for commands`, the current agent support
 
 ## Available Commands
 
-Available commands are determined entirely by the agent—not by this plugin. Each agent provides its own set of commands.
+Available commands are determined entirely by the agentâ€”not by this plugin. Each agent provides its own set of commands.
 
-For example, Claude Code offers commands like `/compact`, `/init`, and `/review`, while other agents may have completely different commands or none at all.
+Command availability and names depend on the active agent and may differ across providers.
 
 Refer to your agent's documentation for a full list of supported commands.
 
@@ -42,3 +42,4 @@ Some commands accept arguments:
 ```
 
 Type the command followed by a space and your arguments.
+

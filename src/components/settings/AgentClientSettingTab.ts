@@ -277,7 +277,7 @@ export class AgentClientSettingTab extends PluginSettingTab {
 			new Setting(containerEl)
 				.setName("Enable WSL mode")
 				.setDesc(
-					"Run agents inside Windows Subsystem for Linux. Recommended for agents like Codex that don't work well in native Windows environments.",
+					"Run agents inside Windows Subsystem for Linux. Useful when your agent tooling works better in Linux than native Windows.",
 				)
 				.addToggle((toggle) =>
 					toggle
@@ -314,12 +314,6 @@ export class AgentClientSettingTab extends PluginSettingTab {
 		// ─────────────────────────────────────────────────────────────────────
 		// Agents
 		// ─────────────────────────────────────────────────────────────────────
-
-		new Setting(containerEl).setName("Built-in agents").setHeading();
-
-		this.renderClaudeSettings(containerEl);
-		this.renderCodexSettings(containerEl);
-		this.renderGeminiSettings(containerEl);
 
 		new Setting(containerEl).setName("Custom agents").setHeading();
 
@@ -551,7 +545,9 @@ export class AgentClientSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Default agent")
-			.setDesc("Choose which agent is used when opening a new chat view.")
+			.setDesc(
+				"Choose which custom agent is used when opening a new chat view.",
+			)
 			.addDropdown((dropdown) => {
 				this.agentSelector = dropdown;
 				this.populateAgentDropdown(dropdown);
@@ -569,7 +565,12 @@ export class AgentClientSettingTab extends PluginSettingTab {
 
 	private populateAgentDropdown(dropdown: DropdownComponent) {
 		dropdown.selectEl.empty();
-		for (const option of this.getAgentOptions()) {
+		const options = this.getAgentOptions();
+		if (options.length === 0) {
+			dropdown.addOption("", "No custom agents configured");
+			return;
+		}
+		for (const option of options) {
 			dropdown.addOption(option.id, option.label);
 		}
 	}
@@ -587,23 +588,7 @@ export class AgentClientSettingTab extends PluginSettingTab {
 			id,
 			label: `${displayName} (${id})`,
 		});
-		const options: { id: string; label: string }[] = [
-			toOption(
-				this.plugin.settings.claude.id,
-				this.plugin.settings.claude.displayName ||
-					this.plugin.settings.claude.id,
-			),
-			toOption(
-				this.plugin.settings.codex.id,
-				this.plugin.settings.codex.displayName ||
-					this.plugin.settings.codex.id,
-			),
-			toOption(
-				this.plugin.settings.gemini.id,
-				this.plugin.settings.gemini.displayName ||
-					this.plugin.settings.gemini.id,
-			),
-		];
+		const options: { id: string; label: string }[] = [];
 		for (const agent of this.plugin.settings.customAgents) {
 			if (agent.id && agent.id.length > 0) {
 				const labelSource =
@@ -621,209 +606,6 @@ export class AgentClientSettingTab extends PluginSettingTab {
 			seen.add(id);
 			return true;
 		});
-	}
-
-	private renderGeminiSettings(sectionEl: HTMLElement) {
-		const gemini = this.plugin.settings.gemini;
-
-		new Setting(sectionEl)
-			.setName(gemini.displayName || "Gemini CLI")
-			.setHeading();
-
-		new Setting(sectionEl)
-			.setName("API key")
-			.setDesc(
-				"Gemini API key. Required if not logging in with a Google account. (Stored as plain text)",
-			)
-			.addText((text) => {
-				text.setPlaceholder("Enter your Gemini API key")
-					.setValue(gemini.apiKey)
-					.onChange(async (value) => {
-						this.plugin.settings.gemini.apiKey = value.trim();
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.type = "password";
-			});
-
-		new Setting(sectionEl)
-			.setName("Path")
-			.setDesc(
-				'Absolute path to the Gemini CLI. On macOS/Linux, use "which gemini", and on Windows, use "where gemini" to find it.',
-			)
-			.addText((text) => {
-				text.setPlaceholder("Absolute path to gemini")
-					.setValue(gemini.command)
-					.onChange(async (value) => {
-						this.plugin.settings.gemini.command = value.trim();
-						await this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(sectionEl)
-			.setName("Arguments")
-			.setDesc(
-				'Enter one argument per line. Leave empty to run without arguments.(Currently, the Gemini CLI requires the "--experimental-acp" option.)',
-			)
-			.addTextArea((text) => {
-				text.setPlaceholder("")
-					.setValue(this.formatArgs(gemini.args))
-					.onChange(async (value) => {
-						this.plugin.settings.gemini.args =
-							this.parseArgs(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.rows = 3;
-			});
-
-		new Setting(sectionEl)
-			.setName("Environment variables")
-			.setDesc(
-				"Enter KEY=VALUE pairs, one per line. Required to authenticate with Vertex AI. GEMINI_API_KEY is derived from the field above.(Stored as plain text)",
-			)
-			.addTextArea((text) => {
-				text.setPlaceholder("GOOGLE_CLOUD_PROJECT=...")
-					.setValue(this.formatEnv(gemini.env))
-					.onChange(async (value) => {
-						this.plugin.settings.gemini.env = this.parseEnv(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.rows = 3;
-			});
-	}
-
-	private renderClaudeSettings(sectionEl: HTMLElement) {
-		const claude = this.plugin.settings.claude;
-
-		new Setting(sectionEl)
-			.setName(claude.displayName || "Claude Code (ACP)")
-			.setHeading();
-
-		new Setting(sectionEl)
-			.setName("API key")
-			.setDesc(
-				"Anthropic API key. Required if not logging in with an Anthropic account. (Stored as plain text)",
-			)
-			.addText((text) => {
-				text.setPlaceholder("Enter your Anthropic API key")
-					.setValue(claude.apiKey)
-					.onChange(async (value) => {
-						this.plugin.settings.claude.apiKey = value.trim();
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.type = "password";
-			});
-
-		new Setting(sectionEl)
-			.setName("Path")
-			.setDesc(
-				'Absolute path to the claude-agent-acp. On macOS/Linux, use "which claude-agent-acp", and on Windows, use "where claude-agent-acp" to find it.',
-			)
-			.addText((text) => {
-				text.setPlaceholder("Absolute path to claude-agent-acp")
-					.setValue(claude.command)
-					.onChange(async (value) => {
-						this.plugin.settings.claude.command = value.trim();
-						await this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(sectionEl)
-			.setName("Arguments")
-			.setDesc(
-				"Enter one argument per line. Leave empty to run without arguments.",
-			)
-			.addTextArea((text) => {
-				text.setPlaceholder("")
-					.setValue(this.formatArgs(claude.args))
-					.onChange(async (value) => {
-						this.plugin.settings.claude.args =
-							this.parseArgs(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.rows = 3;
-			});
-
-		new Setting(sectionEl)
-			.setName("Environment variables")
-			.setDesc(
-				"Enter KEY=VALUE pairs, one per line. ANTHROPIC_API_KEY is derived from the field above.",
-			)
-			.addTextArea((text) => {
-				text.setPlaceholder("")
-					.setValue(this.formatEnv(claude.env))
-					.onChange(async (value) => {
-						this.plugin.settings.claude.env = this.parseEnv(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.rows = 3;
-			});
-	}
-
-	private renderCodexSettings(sectionEl: HTMLElement) {
-		const codex = this.plugin.settings.codex;
-
-		new Setting(sectionEl)
-			.setName(codex.displayName || "Codex")
-			.setHeading();
-
-		new Setting(sectionEl)
-			.setName("API key")
-			.setDesc(
-				"OpenAI API key. Required if not logging in with an OpenAI account. (Stored as plain text)",
-			)
-			.addText((text) => {
-				text.setPlaceholder("Enter your OpenAI API key")
-					.setValue(codex.apiKey)
-					.onChange(async (value) => {
-						this.plugin.settings.codex.apiKey = value.trim();
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.type = "password";
-			});
-
-		new Setting(sectionEl)
-			.setName("Path")
-			.setDesc(
-				'Absolute path to the codex-acp. On macOS/Linux, use "which codex-acp", and on Windows, use "where codex-acp" to find it.',
-			)
-			.addText((text) => {
-				text.setPlaceholder("Absolute path to codex-acp")
-					.setValue(codex.command)
-					.onChange(async (value) => {
-						this.plugin.settings.codex.command = value.trim();
-						await this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(sectionEl)
-			.setName("Arguments")
-			.setDesc(
-				"Enter one argument per line. Leave empty to run without arguments.",
-			)
-			.addTextArea((text) => {
-				text.setPlaceholder("")
-					.setValue(this.formatArgs(codex.args))
-					.onChange(async (value) => {
-						this.plugin.settings.codex.args = this.parseArgs(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.rows = 3;
-			});
-
-		new Setting(sectionEl)
-			.setName("Environment variables")
-			.setDesc(
-				"Enter KEY=VALUE pairs, one per line. OPENAI_API_KEY is derived from the field above.",
-			)
-			.addTextArea((text) => {
-				text.setPlaceholder("")
-					.setValue(this.formatEnv(codex.env))
-					.onChange(async (value) => {
-						this.plugin.settings.codex.env = this.parseEnv(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.rows = 3;
-			});
 	}
 
 	private renderCustomAgents(containerEl: HTMLElement) {
@@ -959,7 +741,9 @@ export class AgentClientSettingTab extends PluginSettingTab {
 				"Enter KEY=VALUE pairs, one per line. (Stored as plain text)",
 			)
 			.addTextArea((text) => {
-				text.setPlaceholder("TOKEN=...")
+				text.setPlaceholder(
+					"GEMINI_API_KEY=...\nOPENROUTER_API_KEY=...",
+				)
 					.setValue(this.formatEnv(agent.env))
 					.onChange(async (value) => {
 						this.plugin.settings.customAgents[index].env =
@@ -973,18 +757,6 @@ export class AgentClientSettingTab extends PluginSettingTab {
 	private generateCustomAgentDisplayName(): string {
 		const base = "Custom agent";
 		const existing = new Set<string>();
-		existing.add(
-			this.plugin.settings.claude.displayName ||
-				this.plugin.settings.claude.id,
-		);
-		existing.add(
-			this.plugin.settings.codex.displayName ||
-				this.plugin.settings.codex.id,
-		);
-		existing.add(
-			this.plugin.settings.gemini.displayName ||
-				this.plugin.settings.gemini.id,
-		);
 		for (const item of this.plugin.settings.customAgents) {
 			existing.add(item.displayName || item.id);
 		}

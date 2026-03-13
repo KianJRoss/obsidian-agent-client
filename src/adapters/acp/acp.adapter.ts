@@ -976,12 +976,12 @@ export class AcpAdapter implements IAgentClient, IAcpClient {
 		const stderr = this.recentStderr;
 		if (!stderr) return null;
 
-		// Missing API key (OpenCode, Claude Code, etc.)
+		// Missing API key
 		if (
 			stderr.includes("API key is missing") ||
 			stderr.includes("LoadAPIKeyError")
 		) {
-			return "The agent's API key may be missing. For custom agents, add the required API key (e.g., ANTHROPIC_API_KEY) in the agent's Environment Variables setting.";
+			return "The agent's API key may be missing. Add the required key (for example, GEMINI_API_KEY and/or OPENROUTER_API_KEY) in the agent Environment Variables setting.";
 		}
 
 		// Authentication failures

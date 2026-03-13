@@ -1,4 +1,4 @@
-# Basic Usage
+﻿# Basic Usage
 
 ## Opening the Chat Panel
 
@@ -31,7 +31,7 @@ You can attach images to your messages by pasting or dragging and dropping.
 1. **Paste**: Copy an image to your clipboard and paste (`Cmd/Ctrl + V`) in the input field
 2. **Drag and Drop**: Drag image files directly onto the input area
 
-Attached images appear as thumbnails below the text area. Click the **×** on a thumbnail to remove it.
+Attached images appear as thumbnails below the text area. Click the **Ã—** on a thumbnail to remove it.
 
 <p align="center">
   <img src="/images/sending-images.webp" alt="Sending Images" width="400" />
@@ -47,7 +47,7 @@ See [Sending Images](/usage/sending-images) for more details.
 
 To switch agents for the current view:
 
-1. Click the **⋮** (ellipsis) menu in the chat header
+1. Click the **â‹®** (ellipsis) menu in the chat header
 2. Select **"Switch agent"**
 3. The agent switches immediately
 
@@ -58,7 +58,7 @@ This is a one-time change for that view only.
 </p>
 
 ::: tip
-To change the default agent for new chat views, go to **Settings → Agent Client → Default agent**.
+To change the default agent for new chat views, go to **Settings â†’ Agent Client â†’ Default agent**.
 
 <img src="/images/switch-default-agent.webp" alt="Default agent setting" />
 :::
@@ -76,7 +76,7 @@ See [Multi-Session Chat](/usage/multi-session) for details on:
 
 Below the input field, you'll find dropdowns to:
 
-- **Change Model**: Switch between different AI models (e.g., Sonnet, Haiku for Claude)
+- **Change Model**: Switch between different AI models provided by your active agent
 - **Change Mode**: Switch agent modes (e.g., Plan Mode)
 
 ::: tip
@@ -90,3 +90,4 @@ Click the **New Chat** button in the header to start a fresh conversation. The p
 ## Stopping Generation
 
 If the agent is generating a response and you want to stop it, click the **Stop** button that appears during generation.
+

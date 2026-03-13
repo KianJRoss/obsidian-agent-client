@@ -1,4 +1,4 @@
-# Chat Export
+﻿# Chat Export
 
 Save your conversations with AI agents for future reference.
 
@@ -12,7 +12,7 @@ Click the **export button** in the chat header to export the current conversatio
 
 ## Export Settings
 
-Configure export options in **Settings → Agent Client → Export**:
+Configure export options in **Settings â†’ Agent Client â†’ Export**:
 
 | Setting | Description |
 |---------|-------------|
@@ -33,13 +33,13 @@ Chats are exported as Markdown files with YAML frontmatter:
 ```markdown
 ---
 created: 2025-12-13T00:31:12
-agentDisplayName: Claude Code
-agentId: claude-agent-acp
+agentDisplayName: Custom ACP Agent
+agentId: custom-agent
 session_id: f95b4847-cb9c-441a-9f0b-08eb243ff5dd
 tags: [agent-client]  # Customizable in settings
 ---
 
-# Claude Code
+# Custom ACP Agent
 
 ## 0:31:12 - User
 
@@ -51,7 +51,7 @@ Summarize this, please.
 
 ## 0:31:16 - Assistant
 
-### 🔧 Read File
+### ðŸ”§ Read File
 
 **Locations**: `/Users/rait09/Documents/dev_vault/Agent Client Plugin.md:0`
 
@@ -59,7 +59,7 @@ Summarize this, please.
 
 ## Summary: Agent Client Plugin for Obsidian
 
-This is an Obsidian plugin that integrates AI coding agents (Claude Code, Codex, Gemini CLI) directly into your vault.
+This is an Obsidian plugin that integrates AI coding agents (custom ACP agents) directly into your vault.
 ...
 ```
 
@@ -78,3 +78,5 @@ This is an Obsidian plugin that integrates AI coding agents (Claude Code, Codex,
 - **Learning**: Review agent explanations later
 - **Sharing**: Share solutions with others
 - **Debugging**: Reference what the agent did for troubleshooting
+
+
